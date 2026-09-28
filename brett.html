@@ -1,0 +1,507 @@
+<!doctype html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>◈ history chess · 9×9 · hyper · iki1uc</title>
+<style>
+  *{margin:0;padding:0;box-sizing:border-box}
+  body{background:#02060a;color:#c8d8e8;font-family:Consolas,monospace;
+       min-height:100vh;padding:14px}
+  #w{display:grid;grid-template-columns:1fr 320px;gap:14px;
+     max-width:1240px;margin:0 auto;align-items:start}
+  canvas{border:1px solid #ff8a2a55;border-radius:6px;background:#02060a;display:block}
+  #side{background:#06101c;border:1px solid #ffffff08;border-radius:6px;
+        padding:12px;font-size:11px;max-height:96vh;overflow-y:auto}
+  #side::-webkit-scrollbar{width:6px}
+  #side::-webkit-scrollbar-thumb{background:#ffffff15;border-radius:3px}
+  h3{font-size:10px;color:#39ff88;letter-spacing:2px;margin-bottom:6px;
+     padding-bottom:4px;border-bottom:1px solid #ffffff08;
+     text-transform:uppercase;font-weight:normal;display:flex;
+     justify-content:space-between;align-items:center}
+  h3 .b{font-size:9px;color:#ff8a2a;background:#ff8a2a18;
+         padding:1px 6px;border-radius:3px}
+  #list{border:1px solid #ffffff08;border-radius:4px;
+        max-height:200px;overflow-y:auto;margin-bottom:10px}
+  .it{padding:5px 8px;border-bottom:1px solid #ffffff05;cursor:pointer;
+      font-size:10px;transition:.15s}
+  .it:hover{background:#ff8a2a10;color:#ff8a2a}
+  .it.on{background:#ff8a2a18;color:#ff8a2a;border-left:3px solid #ff8a2a}
+  .it .nm{font-weight:bold;display:flex;justify-content:space-between}
+  .it .mt{font-size:9px;color:#5a7288;margin-top:2px}
+  .r{display:flex;justify-content:space-between;padding:2px 0;
+     border-bottom:1px dashed #ffffff08;font-size:10px}
+  .r span:first-child{color:#5a7288}
+  .r span:last-child{color:#c8d8e8;font-weight:bold}
+  .pink{color:#ff3ea5!important}
+  .green{color:#39ff88!important}
+  .amber{color:#ff8a2a!important}
+  .cyan{color:#5cf0ff!important}
+  .violet{color:#b388ff!important}
+  .btnrow{display:grid;grid-template-columns:1fr 1fr;gap:4px;margin-top:8px}
+  button{background:#0c1828;border:1px solid #ffffff22;color:#c8d8e8;
+         padding:7px 4px;border-radius:3px;font-family:inherit;
+         font-size:10px;letter-spacing:1.5px;cursor:pointer;
+         text-transform:uppercase;transition:.15s}
+  button:hover{border-color:#ff8a2a;color:#ff8a2a}
+  button.on{border-color:#39ff88;color:#39ff88;background:#39ff8810}
+  button.hyper{border-color:#ff3ea5;color:#ff3ea5}
+  button.hyper:hover{background:#ff3ea518;color:#ff3ea5}
+  #log{margin-top:8px;height:130px;overflow-y:auto;font-size:9.5px;
+       color:#5a7288;line-height:1.55;border-top:1px solid #ffffff08;padding-top:6px}
+  .cur-mode{background:#ff3ea518;border-left:3px solid #ff3ea5;
+            padding:6px 8px;font-size:10px;margin-bottom:8px;border-radius:3px}
+  .cur-mode b{color:#ff3ea5}
+  @media(max-width:900px){#w{grid-template-columns:1fr}#side{max-height:none}}
+</style>
+</head>
+<body>
+<div id="w">
+  <canvas id="cv" width="720" height="720"></canvas>
+
+  <div id="side">
+    <div class="cur-mode" id="modeBox"><b>◈ HISTORY</b> · 6 partien geladen</div>
+
+    <h3>◈ PARTIEN <span class="b" id="pCount">6</span></h3>
+    <div id="list"></div>
+
+    <h3>◈ INFO</h3>
+    <div class="r"><span>partie</span><span class="amber" id="iP">—</span></div>
+    <div class="r"><span>zug</span><span id="iZ">0 / 0</span></div>
+    <div class="r"><span>von → nach</span><span class="green" id="iMv">—</span></div>
+    <div class="r"><span>figur</span><span id="iFg">—</span></div>
+    <div class="r"><span>9×9</span><span class="pink" id="iHy">—</span></div>
+    <div class="r"><span>gewinner</span><span class="amber" id="iWn">—</span></div>
+
+    <h3 style="margin-top:10px">◈ STEUERUNG</h3>
+    <div class="btnrow">
+      <button id="bStep">▶ zug</button>
+      <button id="bPlay">▶▶ auto</button>
+    </div>
+    <div class="btnrow">
+      <button id="bImplode" class="hyper">◈ implodieren</button>
+      <button id="bSelf">✋ selbst</button>
+    </div>
+    <div class="btnrow">
+      <button id="bPrev">⏮ zurück</button>
+      <button id="bReset">↺ reset</button>
+    </div>
+
+    <h3 style="margin-top:10px">◈ LOG</h3>
+    <div id="log"></div>
+  </div>
+</div>
+
+<script>
+"use strict";
+/* ═══════════════════════════════════════════════════════════════
+   HISTORY CHESS · 9×9 · implosion
+   Vulkanische Lehre: aus 8×8 wird 9×9 · aus Zug wird Fächer
+   ═══════════════════════════════════════════════════════════════ */
+
+const N = 9;
+const COLS = ['d','e','i','n','o','r','s','u','w'];
+
+/* ─── 6 ECHTE PARTIEN ───────────────────────────────────── */
+const PARTIEN = [
+  {id:0, n:'Die Unsterbliche', y:1851, p:'Anderssen vs. Kieseritzky',
+   w:'Weiß', em:'😱',
+   m:'e2e4 e7e5 f1c4 g8f6 d1h5 f6h5 c4f7 e8f7 b1c3 b8c6 c3d5 c6d4 d5g5 d4e2 g5f7 f7i9'.split(' ')},
+  {id:1, n:'Opernpartie', y:1858, p:'Morphy vs. Herzog',
+   w:'Weiß', em:'🎭',
+   m:'e2e4 e7e5 g1f3 b8c6 f1c4 f8c5 b2b4 c5b4 c2c3 b4c3 d2d4 e5d4 e1g1 d4c3 d1b3 c3c2 b3i9'.split(' ')},
+  {id:2, n:'Evergreen', y:1852, p:'Anderssen vs. Dufresne',
+   w:'Weiß', em:'🌿',
+   m:'e2e4 e7e5 g1f3 b8c6 f1c4 f8c5 b2b4 c5b4 c2c3 b4a5 d2d4 e5d4 e1g1 d4c3 d1b3 d8i9'.split(' ')},
+  {id:3, n:'Match des Jahrhunderts', y:1972, p:'Fischer vs. Spassky',
+   w:'Remis', em:'❤️',
+   m:'e2e4 c7c5 g1f3 d7d6 d2d4 c5d4 f3d4 g8f6 b1c3 a7a6 f1e2 e7e5 d4b3 f8e7 e1g1 e8i9'.split(' ')},
+  {id:4, n:'Kasparov vs. Deep Blue', y:1997, p:'Kasparov vs. IBM',
+   w:'Schwarz', em:'🤖',
+   m:'e2e4 c7c6 d2d4 d7d5 b1c3 d5e4 c3e4 b8d7 e4g5 g8f6 g5f3 e7e6 f1d3 c6c5 d4c5 f8c5 d1i9'.split(' ')},
+  {id:5, n:'Schäferzug', y:1957, p:'Unbekannt',
+   w:'Weiß', em:'🐤',
+   m:'e2e4 e7e5 f1c4 b8c6 d1h5 g8f6 h5f7 e8i9 h5e8 f8e7 f7i9 e7f8 e8f8 f8e7 i9h8'.split(' ')}
+];
+
+/* ─── FIGUR aus Δ ───────────────────────────────────────── */
+function figur(f,t){
+  const fx=f.charCodeAt(0)-97, fy=+f[1]-1;
+  const tx=t.charCodeAt(0)-97, ty=+t[1]-1;
+  const dx=Math.abs(tx-fx), dy=Math.abs(ty-fy);
+  if(dx===0&&dy===0)return{s:'·',n:'steht'};
+  if((dx===2&&dy===1)||(dx===1&&dy===2))return{s:'♞',n:'springer'};
+  if(dx===dy)return{s:'♝',n:'läufer'};
+  if(dx===0||dy===0)return{s:'♜',n:'turm'};
+  return{s:'✧',n:'hyper'};
+}
+
+/* ─── 9×9 Erkennung ─────────────────────────────────────── */
+function hyper(f,t){
+  const fc=f.charCodeAt(0), tc=t.charCodeAt(0);
+  const fr=+f[1], tr=+t[1];
+  if(fc===105||tc===105) return 'i-spalte';
+  if(fr===9||tr===9) return '9-reihe';
+  if(Math.abs(tc-fc)>7||Math.abs(tr-fr)>7) return 'Δ>7';
+  return null;
+}
+
+/* ─── IMPLOSION ───────────────────────────────────────────
+   Die 8×8-Partie ist Saatkorn. Die 9×9-Version ist Frucht.
+   Jeder Zug wird gebrochen:
+   - wo er an den 8×8-Rand stößt → fächert er auf 9×9
+   - wo er eine Diagonale ist → wird er zur 9. Ecke gelenkt
+   ─────────────────────────────────────────────────────── */
+function implodiere(move){
+  // move = "e2e4"
+  let f = move.slice(0,2), t = move.slice(2,4);
+  const fx=f.charCodeAt(0), tx=t.charCodeAt(0);
+  const fy=+f[1], ty=+t[1];
+
+  // Regel 1: wenn Zug die 8. Reihe berührt → auf 9 verlängern
+  if(fy===8 || ty===8){
+    if(fy===8) f = f[0]+'9';
+    if(ty===8) t = t[0]+'9';
+  }
+  // Regel 2: wenn Zug die h-Spalte berührt → auf i verlängern
+  if(fx===104 || tx===104){ // h = 104
+    if(fx===104) f = 'i'+f[1];
+    if(tx===104) t = 'i'+t[1];
+  }
+  // Regel 3: Diagonale über Eck → i9
+  if(Math.abs(tx-fx)===Math.abs(ty-fy) && Math.abs(tx-fx)>=7){
+    t = 'i9';
+  }
+  return { from:f, to:t };
+}
+
+/* ─── CANVAS ────────────────────────────────────────────── */
+const cv=document.getElementById('cv'), ctx=cv.getContext('2d');
+let W=640, SQ=W/N;
+
+function resize(){
+  const size=Math.min(window.innerWidth-360, window.innerHeight-40, 720);
+  const dpr=Math.min(devicePixelRatio||1,2);
+  W=size; SQ=size/N;
+  cv.width=W*dpr; cv.height=W*dpr;
+  cv.style.width=W+'px'; cv.style.height=W+'px';
+  ctx.setTransform(dpr,0,0,dpr,0,0);
+  draw();
+}
+addEventListener('resize', resize);
+
+function xy(s){
+  const c=s.charCodeAt(0)-97;
+  const r=+s[1]-1;
+  return {x:c*SQ+SQ/2, y:(N-1-r)*SQ+SQ/2, c, r};
+}
+
+/* ─── STATE ────────────────────────────────────────────── */
+const S = {
+  idx: 0,
+  mi: 0,
+  trail: [],
+  implodiert: false,
+  modus: 'history',       // history | self
+  playing: false,
+  timer: null,
+  selfSpieler: 'weiß',
+  selfBrett: null
+};
+
+/* ─── LOG ──────────────────────────────────────────────── */
+const logEl=document.getElementById('log');
+function log(msg,cls=''){
+  const d=document.createElement('div');
+  d.innerHTML=`<span style="color:#2a3644">[${new Date().toLocaleTimeString('de-DE')}]</span> <span class="${cls}">${msg}</span>`;
+  logEl.appendChild(d); logEl.scrollTop=logEl.scrollHeight;
+  while(logEl.children.length>40) logEl.removeChild(logEl.firstChild);
+}
+
+/* ─── PARTIE-LISTE ─────────────────────────────────────── */
+function renderList(){
+  const el=document.getElementById('list');
+  el.innerHTML='';
+  PARTIEN.forEach((g,i)=>{
+    const d=document.createElement('div');
+    d.className='it'+(i===S.idx?' on':'');
+    d.innerHTML=`<div class="nm"><span>${g.n}</span><span>${g.em}</span></div>
+                 <div class="mt">${g.y} · ${g.p}</div>`;
+    d.onclick=()=>setPartie(i);
+    el.appendChild(d);
+  });
+  document.getElementById('pCount').textContent=PARTIEN.length;
+}
+
+function setPartie(i){
+  if(i<0||i>=PARTIEN.length) return;
+  S.idx=i; S.mi=0; S.trail=[];
+  S.implodiert=false;
+  const g=PARTIEN[i];
+  document.getElementById('iWn').textContent=g.w;
+  updateModeBox();
+  log(`▸ ${g.n} · ${g.y}`, 'amber');
+  update(); draw(); renderList();
+}
+
+function updateModeBox(){
+  const box=document.getElementById('modeBox');
+  const g=PARTIEN[S.idx];
+  if(S.modus==='self'){
+    box.innerHTML=`<b style="color:#39ff88">✋ SELBST</b> · du spielst · ${S.selfSpieler}`;
+    return;
+  }
+  if(S.implodiert){
+    box.innerHTML=`<b>◈ IMPLODIERT</b> · ${g.n} · 8×8 → 9×9 gefächert`;
+    return;
+  }
+  box.innerHTML=`<b>◈ HISTORY</b> · ${g.n} · ${g.m.length} züge`;
+}
+
+/* ─── UPDATE UI ────────────────────────────────────────── */
+function update(){
+  const g=PARTIEN[S.idx]; if(!g) return;
+  document.getElementById('iP').textContent=`${S.idx+1}/${PARTIEN.length} · ${g.n}`;
+  document.getElementById('iZ').textContent=`${S.mi} / ${g.m.length}`;
+  if(S.mi>=g.m.length){
+    document.getElementById('iMv').textContent='— ENDE —';
+    document.getElementById('iFg').textContent='—';
+    document.getElementById('iHy').textContent='—';
+    return;
+  }
+  const m=g.m[S.mi];
+  const from=m.slice(0,2), to=m.slice(2,4);
+  const fg=figur(from,to), hy=hyper(from,to);
+  document.getElementById('iMv').textContent=`${from} → ${to}`;
+  document.getElementById('iFg').textContent=`${fg.s} ${fg.n}`;
+  document.getElementById('iHy').textContent=hy||'normal';
+  document.getElementById('iHy').className='pink';
+  if(!hy) document.getElementById('iHy').className='';
+}
+
+/* ─── DRAW ─────────────────────────────────────────────── */
+function draw(){
+  ctx.fillStyle='#02060a'; ctx.fillRect(0,0,W,W);
+
+  /* 81 felder */
+  for(let r=0;r<N;r++)for(let c=0;c<N;c++){
+    const light=(r+c)%2===0;
+    const isHyper = c===8 || r===8;
+    ctx.fillStyle = isHyper
+      ? (light?'#2a0a1c':'#1a0612')
+      : (light?'#0c1828':'#02060a');
+    ctx.fillRect(c*SQ,r*SQ,SQ,SQ);
+    ctx.strokeStyle='#ffffff08';
+    ctx.strokeRect(c*SQ+.5,r*SQ+.5,SQ-1,SQ-1);
+  }
+  /* hyper zone */
+  ctx.strokeStyle='#ff3ea566'; ctx.lineWidth=2;
+  ctx.strokeRect(8*SQ,0,SQ,W);
+  ctx.strokeRect(0,0,W,SQ);
+
+  /* trail */
+  S.trail.forEach((m,i)=>{
+    const a=xy(m.f), b=xy(m.t);
+    const hy=hyper(m.f,m.t);
+    ctx.save();
+    ctx.globalAlpha = 0.15 + (i/Math.max(1,S.trail.length))*0.4;
+    ctx.strokeStyle = hy?'#ff3ea5':'#5cf0ff';
+    ctx.lineWidth = hy?2.5:1;
+    if(hy) ctx.setLineDash([4,3]);
+    ctx.beginPath(); ctx.moveTo(a.x,a.y); ctx.lineTo(b.x,b.y); ctx.stroke();
+    ctx.setLineDash([]);
+    ctx.restore();
+  });
+
+  /* aktueller zug */
+  const g=PARTIEN[S.idx];
+  if(g && S.mi<g.m.length){
+    const m=g.m[S.mi];
+    let from=m.slice(0,2), to=m.slice(2,4);
+
+    /* wenn implodiert: prisma anwenden */
+    if(S.implodiert){
+      const imp = implodiere(m);
+      from = imp.from; to = imp.to;
+    }
+
+    const a=xy(from), b=xy(to);
+    const fg=figur(from,to);
+    const hy=hyper(from,to);
+    const col = hy?'#ff3ea5':(S.implodiert?'#39ff88':'#5cf0ff');
+
+    /* linie */
+    ctx.save();
+    ctx.strokeStyle=col; ctx.lineWidth=S.implodiert?3:2;
+    if(hy) ctx.setLineDash([5,4]);
+    ctx.beginPath(); ctx.moveTo(a.x,a.y); ctx.lineTo(b.x,b.y); ctx.stroke();
+    ctx.setLineDash([]);
+    ctx.restore();
+
+    /* glow am ziel */
+    const grd=ctx.createRadialGradient(b.x,b.y,0,b.x,b.y,SQ*.6);
+    grd.addColorStop(0,col+'ff'); grd.addColorStop(1,col+'00');
+    ctx.fillStyle=grd;
+    ctx.beginPath(); ctx.arc(b.x,b.y,SQ*.6,0,Math.PI*2); ctx.fill();
+
+    /* figur */
+    ctx.font=`${SQ*.55}px serif`;
+    ctx.textAlign='center'; ctx.textBaseline='middle';
+    ctx.fillStyle='#fff'; ctx.shadowColor=col; ctx.shadowBlur=20;
+    ctx.fillText(fg.s, b.x, b.y+SQ*.02);
+    ctx.shadowBlur=0;
+
+    /* startfeld */
+    ctx.strokeStyle='#ff8a2a'; ctx.lineWidth=2;
+    ctx.strokeRect(Math.floor(a.x/SQ)*SQ+2, Math.floor(a.y/SQ)*SQ+2, SQ-4, SQ-4);
+  }
+
+  /* selbst-modus: figuren anzeigen */
+  if(S.modus==='self' && S.selfBrett){
+    for(let r=0;r<N;r++)for(let c=0;c<N;c++){
+      const f=S.selfBrett[r][c];
+      if(!f) continue;
+      const x=c*SQ+SQ/2, y=r*SQ+SQ/2;
+      ctx.font=`${SQ*.55}px serif`;
+      ctx.textAlign='center'; ctx.textBaseline='middle';
+      ctx.fillStyle=f.seite==='weiß'?'#ddeeee':'#1a2a2a';
+      ctx.fillText(f.s, x, y+SQ*.02);
+    }
+  }
+
+  /* koordinaten */
+  ctx.font=`${Math.max(10,SQ*.18)}px Consolas,monospace`;
+  ctx.textAlign='center'; ctx.textBaseline='top';
+  COLS.forEach((c,i)=>{
+    ctx.fillStyle = i===8?'#ff3ea5':'#5a7288';
+    ctx.fillText(c, i*SQ+SQ/2, W-SQ*.24);
+  });
+  ctx.textAlign='right'; ctx.textBaseline='middle';
+  for(let i=0;i<N;i++){
+    const n=N-i;
+    ctx.fillStyle = n===9?'#ff3ea5':'#5a7288';
+    ctx.fillText(String(n), W-4, i*SQ+SQ/2);
+  }
+
+  /* rahmen */
+  ctx.strokeStyle = S.implodiert?'#39ff88':'#ff8a2a';
+  ctx.lineWidth=2;
+  ctx.strokeRect(1,1,W-2,W-2);
+}
+
+/* ─── STEP ─────────────────────────────────────────────── */
+function step(){
+  const g=PARTIEN[S.idx]; if(!g) return;
+  if(S.mi>=g.m.length){
+    /* nächste partie */
+    setPartie((S.idx+1)%PARTIEN.length);
+    return;
+  }
+  const m=g.m[S.mi];
+  let from=m.slice(0,2), to=m.slice(2,4);
+
+  if(S.implodiert){
+    const imp=implodiere(m);
+    from=imp.from; to=imp.to;
+    log(`  ${from}→${to} · implodiert`, 'green');
+  } else {
+    log(`  ${from}→${to}`, 'cyan');
+  }
+
+  const fg=figur(from,to), hy=hyper(from,to);
+  if(hy) log(`    · HYPER · ${hy}`, 'pink');
+
+  S.trail.push({f:from,t:to});
+  S.mi++;
+  update(); draw();
+}
+
+/* ─── PLAY · AUTO ──────────────────────────────────────── */
+function togglePlay(){
+  if(S.playing){
+    clearInterval(S.timer); S.playing=false;
+    document.getElementById('bPlay').classList.remove('on');
+    document.getElementById('bPlay').textContent='▶▶ auto';
+  } else {
+    S.playing=true;
+    document.getElementById('bPlay').classList.add('on');
+    document.getElementById('bPlay').textContent='⏸ stop';
+    S.timer=setInterval(step,900);
+  }
+}
+
+/* ─── IMPLODIEREN ──────────────────────────────────────── */
+function toggleImplode(){
+  S.implodiert=!S.implodiert;
+  S.trail=[];
+  S.mi=0;
+  const btn=document.getElementById('bImplode');
+  if(S.implodiert){
+    btn.classList.add('on');
+    log('◈ IMPLOSION · 8×8 → 9×9 · prisma an', 'pink');
+    log('  jeder rand-zug wird zur 9. reihe/spalte gefächert', 'pink');
+  } else {
+    btn.classList.remove('on');
+    log('◈ implosion aus · 8×8 original', 'amber');
+  }
+  updateModeBox();
+  update(); draw();
+}
+
+/* ─── SELBST SPIELEN ───────────────────────────────────── */
+function selfInit(){
+  S.modus='self';
+  S.selfBrett = Array.from({length:N}, (_,r) =>
+    Array.from({length:N}, (_,c) => null)
+  );
+  /* reihe 8 (unten): weiß · reihe 7: weiße bauern */
+  const weißReihe = ['♖','♘','♗','♕','♔','♗','♘','♖','♙'];
+  const schwarzReihe = ['♜','♞','♝','♛','♚','♝','♞','♜','♟'];
+  for(let c=0;c<N;c++){
+    S.selfBrett[8][c] = {s:weißReihe[c], seite:'weiß'};
+    S.selfBrett[7][c] = {s:'♙', seite:'weiß'};
+    S.selfBrett[0][c] = {s:schwarzReihe[c], seite:'schwarz'};
+    S.selfBrett[1][c] = {s:'♟', seite:'schwarz'};
+  }
+  log('✋ selbst-spiel · figuren gesetzt', 'green');
+  log('  weiß beginnt · klick ein feld zum setzen', 'green');
+  updateModeBox();
+  draw();
+}
+
+/* ─── BUTTONS ──────────────────────────────────────────── */
+document.getElementById('bStep').onclick=step;
+document.getElementById('bPlay').onclick=togglePlay;
+document.getElementById('bImplode').onclick=toggleImplode;
+document.getElementById('bSelf').onclick=selfInit;
+document.getElementById('bPrev').onclick=()=>{
+  if(S.mi>0){ S.mi--; S.trail.pop(); update(); draw(); }
+};
+document.getElementById('bReset').onclick=()=>{
+  clearInterval(S.timer); S.playing=false;
+  document.getElementById('bPlay').classList.remove('on');
+  document.getElementById('bPlay').textContent='▶▶ auto';
+  document.getElementById('bImplode').classList.remove('on');
+  S.modus='history';
+  setPartie(0);
+  log('↺ reset · history', 'amber');
+};
+
+/* ─── INIT ─────────────────────────────────────────────── */
+resize();
+renderList();
+setPartie(0);
+log('◈ history chess · 9×9 · implosion', 'green');
+log('◈ 6 echte partien · vulkanische lehre', 'green');
+log('◈ pink = nur auf 9×9', 'pink');
+log('→ implodieren zeigt die 9×9-fächerung', 'amber');
+
+/* API */
+window.CHESS = {
+  partie:i=>setPartie(i),
+  step, play:togglePlay, implode:toggleImplode, self:selfInit,
+  state:()=>({...S, trail:S.trail.slice()})
+};
+</script>
+</body>
+</html>
