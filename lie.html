@@ -1,0 +1,168 @@
+<!doctype html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<title>lie · der name ist die funktion</title>
+<style>
+body{background:#02060a;color:#c8d8e8;font-family:monospace;
+     min-height:100vh;margin:0;padding:20px;display:flex;
+     align-items:center;justify-content:center}
+#w{max-width:800px;width:100%}
+h1{font-size:16px;letter-spacing:6px;color:#ff3ea5;margin-bottom:20px;
+   text-transform:uppercase;font-weight:400}
+.row{display:grid;grid-template-columns:auto 1fr auto;gap:10px;
+     padding:8px 12px;border-bottom:1px solid #ffffff08;font-size:12px}
+.row .n{color:#ff3ea5;font-weight:bold;min-width:80px}
+.row .v{color:#8ab4ff}
+.row .a{color:#39ff88;text-align:right}
+.hint{margin-top:20px;font-size:10px;color:#3a4a5a;line-height:1.8;
+      border-top:1px solid #ffffff08;padding-top:12px}
+.hint b{color:#ff3ea5}
+#g{display:grid;grid-template-columns:repeat(9,32px);gap:2px;
+   margin:16px 0}
+.c{aspect-ratio:1;border:1px solid #ffffff10;border-radius:2px;
+   display:flex;align-items:center;justify-content:center;
+   font-size:8px;color:#3a4a5a}
+.c.dr{background:#ff3ea522;border-color:#ff3ea566;color:#ff3ea5}
+.c.ol{background:#39ff8822;border-color:#39ff8866;color:#39ff88}
+.c.bd{background:#8ab4ff22;border-color:#8ab4ff66;color:#8ab4ff}
+</style>
+</head>
+<body>
+<div id="w">
+  <h1>◈ lie</h1>
+  <div id="g"></div>
+  <div id="tbl"></div>
+  <div class="hint">
+    <b>lie()</b> in der Konsole → gesamter Zustand<br>
+    <b>lie.was()</b> → was liegt<br>
+    <b>lie.wo()</b> → wo liegt was<br>
+    <b>lie.wie()</b> → wie viel liegt<br>
+    <b>lie.leer()</b> → alles weg
+  </div>
+</div>
+
+<script>
+// ─── LIE · Name = Funktion ──────────────────────────────
+// Der Name der Datei ist der Name der Funktion.
+// Was liegt = das Gedächtnis zwischen zwei Moves.
+
+const N=9, NAMES='deinorsuw'.split('');
+
+// Zustand
+const _lie = {
+  tropfen: {},     // d1: 2 · e5: 1
+  geölt: new Set(),
+  bewegt: new Set()
+};
+
+// ═══ lie() ═══
+function lie(){
+  return {
+    tropfen: {..._lie.tropfen},
+    geölt: [..._lie.geölt],
+    bewegt: [..._lie.bewegt],
+    summe: Object.values(_lie.tropfen).reduce((a,b)=>a+b,0),
+    leere: 81 - Object.keys(_lie.tropfen).length
+  };
+}
+
+// ═══ lie.was() ═══
+lie.was = function(){
+  return Object.keys(_lie.tropfen).map(k=>({
+    feld: k,
+    tropfen: _lie.tropfen[k],
+    geölt: _lie.geölt.has(k)
+  }));
+};
+
+// ═══ lie.wo() ═══
+lie.wo = function(feld){
+  if(feld) return _lie.tropfen[feld] || 0;
+  const map = {};
+  for(let r=0;r<N;r++) for(let c=0;c<N;c++){
+    const k = NAMES[c]+(r+1);
+    if(_lie.tropfen[k]) map[k] = _lie.tropfen[k];
+  }
+  return map;
+};
+
+// ═══ lie.wie() ═══
+lie.wie = function(){
+  return {
+    summe: Object.values(_lie.tropfen).reduce((a,b)=>a+b,0),
+    felder: Object.keys(_lie.tropfen).length,
+    geölt: _lie.geölt.size,
+    bewegt: _lie.bewegt.size
+  };
+};
+
+// ═══ lie.leer() ═══
+lie.leer = function(){
+  _lie.tropfen = {};
+  _lie.geölt.clear();
+  _lie.bewegt.clear();
+  render();
+  return lie();
+};
+
+// ═══ lie.drop() — intern, für Show ═══
+lie.drop = function(feld, n=1){
+  _lie.tropfen[feld] = (_lie.tropfen[feld]||0) + n;
+  if(_lie.tropfen[feld] >= 3) _lie.geölt.add(feld);
+  render();
+  return lie.wo(feld);
+};
+
+// ═══ RENDER ═══
+const g = document.getElementById('g');
+const cells = {};
+for(let r=0;r<N;r++) for(let c=0;c<N;c++){
+  const k = NAMES[c]+(r+1);
+  const d = document.createElement('div');
+  d.className='c';
+  d.textContent = k;
+  g.appendChild(d);
+  cells[k] = d;
+}
+
+function render(){
+  Object.entries(cells).forEach(([k,el])=>{
+    el.className = 'c';
+    if(_lie.geölt.has(k)) el.classList.add('ol');
+    else if(_lie.tropfen[k]) el.classList.add('dr');
+    if(_lie.bewegt.has(k)) el.classList.add('bd');
+    el.textContent = _lie.tropfen[k] ? `${k}·${_lie.tropfen[k]}` : k;
+  });
+  const w = lie.wie();
+  document.getElementById('tbl').innerHTML = `
+    <div class="row"><span class="n">summe</span>
+      <span class="v">${w.summe} tropfen</span>
+      <span class="a">${w.felder} / 81</span></div>
+    <div class="row"><span class="n">geölt</span>
+      <span class="v">${w.geölt} zellen</span>
+      <span class="a">rutschig</span></div>
+    <div class="row"><span class="n">bewegt</span>
+      <span class="v">${w.bewegt} felder</span>
+      <span class="a">letzter move</span></div>
+    <div class="row"><span class="n">leer</span>
+      <span class="v">${81 - w.felder} felder</span>
+      <span class="a">unberührt</span></div>
+  `;
+}
+
+// ─── SHOW ───
+// Ein Tropfen fällt zufällig. LIE aktualisiert.
+setInterval(()=>{
+  const feld = NAMES[Math.floor(Math.random()*9)] + (1+Math.floor(Math.random()*9));
+  _lie.bewegt.clear();
+  _lie.bewegt.add(feld);
+  lie.drop(feld, 1);
+}, 800);
+
+render();
+console.log('%c◈ lie · name = funktion', 'color:#ff3ea5;font-weight:bold;font-size:14px');
+console.log('→ lie() · lie.was() · lie.wo() · lie.wie() · lie.leer() · lie.drop("d5",2)');
+</script>
+</body>
+</html>
