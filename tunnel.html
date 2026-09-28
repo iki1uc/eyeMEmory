@@ -1,0 +1,269 @@
+<!doctype html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<title>◈ time-tunnel · 9 kanäle · iki1uc</title>
+<style>
+  *{margin:0;padding:0;box-sizing:border-box}
+  body{background:#02060a;color:#c8d8e8;font-family:Consolas,monospace;
+       min-height:100vh;overflow:hidden}
+  #wrap{display:grid;grid-template-columns:1fr 340px;height:100vh}
+  #stage{position:relative;background:radial-gradient(ellipse at center,
+         #0a1420 0%, #02060a 70%)}
+  canvas{display:block;width:100%;height:100%}
+  #side{background:#06101c;border-left:1px solid #ffffff10;padding:16px;
+        overflow-y:auto;font-size:11px}
+  #side h2{font-size:10px;letter-spacing:3px;color:#5cf0ff;font-weight:400;
+           margin-bottom:10px;text-transform:uppercase}
+  .seg{display:flex;align-items:center;gap:6px;padding:8px;margin-bottom:4px;
+       border:1px solid #ffffff10;border-radius:4px;cursor:pointer;
+       transition:.15s;font-size:10px}
+  .seg:hover{border-color:currentColor;background:#ffffff08}
+  .seg.on{border-color:currentColor;background:currentColor;
+          background:color-mix(in srgb, currentColor 15%, transparent)}
+  .seg .dot{width:8px;height:8px;border-radius:50%;background:currentColor;
+            box-shadow:0 0 8px currentColor;flex-shrink:0}
+  .seg .name{font-weight:bold;color:currentColor;width:80px}
+  .seg .chain{color:#5a7288;font-size:9px}
+  #info{margin-top:16px;padding-top:12px;border-top:1px solid #ffffff10;
+        font-size:10px;line-height:1.7;color:#5a7288}
+  #info b{color:#ff3ea5}
+  #info .big{font-size:13px;color:#c8d8e8;letter-spacing:1px}
+</style>
+</head>
+<body>
+<div id="wrap">
+  <div id="stage"><canvas id="cv"></canvas></div>
+  <div id="side">
+    <h2>◈ 9 KANÄLE</h2>
+    <div id="segList"></div>
+    <div id="info">
+      <div class="big" id="cur">◉ wähle einen kanal</div>
+      <div>klick feld → tunnel öffnet</div>
+      <div>klick kanal → alle felder</div>
+      <div style="margin-top:8px"><b>9 segmente</b> · 81 knoten · 729 pfade</div>
+    </div>
+  </div>
+</div>
+
+<script>
+// ═══════════════════════════════════════════════════════════
+// TIME-TUNNEL · 9 segmente als zickzack-bahnen
+// Jeder knoten ist ein feld. Jede kante ein tunnel-segment.
+// ═══════════════════════════════════════════════════════════
+
+const SEG = [
+  {id:'HY',    col:'#5cf0ff', chain:['◉','3','9','◎','81','3↺']},
+  {id:'PE',    col:'#b388ff', chain:['◉','9','◎','81','◆','△','▣']},
+  {id:'PER',   col:'#f0d080', chain:['3','9','81','◆','756','△','27','▣','3']},
+  {id:'TRANS', col:'#39ff88', chain:['◎','81','◆','△']},
+  {id:'WARB',  col:'#ff3ea5', chain:['81','◆','△','27']},
+  {id:'KANAL', col:'#8cf0d0', chain:['756','△','27','▣']},
+  {id:'TMP-α', col:'#5cf0ff', chain:['3','◎','27']},
+  {id:'TMP-β', col:'#f0d080', chain:['9','81','▣']},
+  {id:'TMP-γ', col:'#b388ff', chain:['◆','756','△']}
+];
+
+// ─── state ─────────────────────────────────────────────────
+const S = {
+  active: null,   // aktives segment index
+  tick: 0,
+  pulse: 0,       // welcher knoten pulsiert
+  time: 0
+};
+
+// ─── canvas setup ──────────────────────────────────────────
+const cv = document.getElementById('cv');
+const ctx = cv.getContext('2d');
+let W, H, cx, cy, R;
+
+function resize(){
+  const r = cv.parentElement.getBoundingClientRect();
+  const dpr = Math.min(devicePixelRatio||1, 2);
+  W = r.width; H = r.height;
+  cv.width = W*dpr; cv.height = H*dpr;
+  cv.style.width = W+'px'; cv.style.height = H+'px';
+  ctx.setTransform(dpr,0,0,dpr,0,0);
+  cx = W/2; cy = H/2;
+  R = Math.min(W, H) * 0.38;
+}
+addEventListener('resize', resize);
+
+// ─── tunnel-zeichnen ───────────────────────────────────────
+// Die Kette wird als Zickzack-Spirale gezeichnet:
+// Knoten 0 in der Mitte, dann nach außen rotierend.
+
+function knotenPos(i, total){
+  // Spirale: jeder knoten weiter außen, rotiert
+  const t = i / Math.max(1, total-1);  // 0..1
+  const radius = R * (0.15 + t * 0.85);
+  const angle = i * 2.4 - Math.PI/2;   // goldener schnitt winkel
+  return {
+    x: cx + Math.cos(angle) * radius,
+    y: cy + Math.sin(angle) * radius,
+    r: 12 + (1-t) * 10
+  };
+}
+
+function draw(){
+  S.time += 0.016;
+  S.tick++;
+
+  // clear mit nachlauf
+  ctx.fillStyle = 'rgba(2,6,10,0.15)';
+  ctx.fillRect(0,0,W,H);
+
+  // ─── alle segmente als schwache bahnen ───
+  if(S.active === null){
+    SEG.forEach((seg, si) => {
+      drawKette(seg, si, 0.15, false);
+    });
+    // mitte-puls
+    const p = 1 + Math.sin(S.time*2) * 0.1;
+    ctx.beginPath();
+    ctx.arc(cx, cy, 30*p, 0, Math.PI*2);
+    ctx.strokeStyle = '#ff3ea5';
+    ctx.lineWidth = 2;
+    ctx.stroke();
+    ctx.font = '14px Consolas';
+    ctx.fillStyle = '#ff3ea5';
+    ctx.textAlign = 'center';
+    ctx.fillText('◉', cx, cy+5);
+  } else {
+    // ─── aktives segment groß ───
+    const seg = SEG[S.active];
+    drawKette(seg, S.active, 1, true);
+  }
+
+  requestAnimationFrame(draw);
+}
+
+function drawKette(seg, si, alpha, big){
+  const n = seg.chain.length;
+  const col = seg.col;
+
+  // Kanten zuerst
+  ctx.lineWidth = big ? 2 : 0.8;
+  for(let i=0;i<n-1;i++){
+    const a = knotenPos(i, n);
+    const b = knotenPos(i+1, n);
+    // Winkel-Verschiebung bei aktiv
+    const offA = S.active === null ? 0 : Math.sin(S.time + i) * 3;
+    const offB = S.active === null ? 0 : Math.sin(S.time + i+1) * 3;
+
+    const grad = ctx.createLinearGradient(a.x,a.y,b.x,b.y);
+    grad.addColorStop(0, col + Math.floor(alpha*255).toString(16).padStart(2,'0'));
+    grad.addColorStop(1, col + Math.floor(alpha*180).toString(16).padStart(2,'0'));
+    ctx.strokeStyle = grad;
+    ctx.beginPath();
+    ctx.moveTo(a.x + offA, a.y);
+    ctx.lineTo(b.x + offB, b.y);
+    ctx.stroke();
+  }
+
+  // Knoten
+  const activeKnot = big ? Math.floor(S.time * 1.5) % n : -1;
+  for(let i=0;i<n;i++){
+    const p = knotenPos(i, n);
+    const isActive = i === activeKnot;
+    const pul = isActive ? 1 + Math.sin(S.time * 8) * 0.3 : 1;
+    const radius = p.r * pul;
+
+    // Glow
+    const g = ctx.createRadialGradient(p.x,p.y,0,p.x,p.y,radius*3);
+    g.addColorStop(0, col + Math.floor(alpha*200).toString(16).padStart(2,'0'));
+    g.addColorStop(1, col+'00');
+    ctx.fillStyle = g;
+    ctx.beginPath();
+    ctx.arc(p.x, p.y, radius*3, 0, Math.PI*2);
+    ctx.fill();
+
+    // Punkt
+    ctx.beginPath();
+    ctx.arc(p.x, p.y, radius, 0, Math.PI*2);
+    ctx.fillStyle = '#02060a';
+    ctx.fill();
+    ctx.strokeStyle = col;
+    ctx.lineWidth = isActive ? 2.5 : 1.2;
+    ctx.stroke();
+
+    // Symbol
+    ctx.font = `${big ? 12 : 10}px Consolas`;
+    ctx.fillStyle = isActive ? '#ffffff' : col;
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    ctx.shadowColor = col;
+    ctx.shadowBlur = isActive ? 12 : 0;
+    ctx.fillText(seg.chain[i], p.x, p.y+1);
+    ctx.shadowBlur = 0;
+  }
+}
+
+// ─── side list ─────────────────────────────────────────────
+const listEl = document.getElementById('segList');
+SEG.forEach((seg, i) => {
+  const d = document.createElement('div');
+  d.className = 'seg';
+  d.style.color = seg.col;
+  d.innerHTML = `<div class="dot"></div>
+    <div class="name">${seg.id}</div>
+    <div class="chain">${seg.chain.join(' → ')}</div>`;
+  d.onclick = (e) => {
+    e.stopPropagation();
+    if(S.active === i){
+      S.active = null;
+      d.classList.remove('on');
+      document.getElementById('cur').textContent = '◉ wähle einen kanal';
+    } else {
+      S.active = i;
+      document.querySelectorAll('.seg').forEach(x=>x.classList.remove('on'));
+      d.classList.add('on');
+      document.getElementById('cur').textContent = `◈ ${seg.id} · ${seg.chain.length} knoten`;
+    }
+  };
+  listEl.appendChild(d);
+});
+
+// ─── canvas klick → tunnel öffnen ──────────────────────────
+cv.addEventListener('click', (e) => {
+  const r = cv.getBoundingClientRect();
+  const mx = e.clientX - r.left, my = e.clientY - r.top;
+  // nächsten knoten finden
+  let best = null, bestD = 40;
+  SEG.forEach((seg, si) => {
+    seg.chain.forEach((_, i) => {
+      const p = knotenPos(i, seg.chain.length);
+      const d = Math.hypot(p.x-mx, p.y-my);
+      if(d < bestD){ bestD = d; best = si; }
+    });
+  });
+  if(best !== null && S.active === null){
+    // aktivieren
+    S.active = best;
+    document.querySelectorAll('.seg').forEach((x,i)=>x.classList.toggle('on', i===best));
+    const seg = SEG[best];
+    document.getElementById('cur').textContent = `◈ ${seg.id} · ${seg.chain.length} knoten`;
+  } else if(S.active !== null){
+    S.active = null;
+    document.querySelectorAll('.seg').forEach(x=>x.classList.remove('on'));
+    document.getElementById('cur').textContent = '◉ wähle einen kanal';
+  }
+});
+
+// ─── start ─────────────────────────────────────────────────
+resize();
+requestAnimationFrame(draw);
+
+// public
+window.tunnel = {
+  oeffne: (id) => {
+    const i = SEG.findIndex(s => s.id === id);
+    if(i>=0) document.querySelectorAll('.seg')[i].click();
+  },
+  schliesse: () => { S.active = null; document.querySelectorAll('.seg').forEach(x=>x.classList.remove('on')); },
+  segmente: () => SEG.map(s=>s.id),
+  state: () => ({aktiv: S.active !== null ? SEG[S.active].id : null})
+};
+</script>
+</body>
+</html>
