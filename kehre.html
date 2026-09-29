@@ -1,0 +1,292 @@
+<!doctype html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<title>◈ feld für feld · hin und zurück</title>
+<style>
+  *{margin:0;padding:0;box-sizing:border-box}
+  body{background:#02060a;color:#c8d8e8;font-family:Consolas,monospace;
+       min-height:100vh;display:flex;align-items:center;justify-content:center;
+       padding:16px;gap:20px;flex-wrap:wrap}
+  #stage{display:flex;flex-direction:column;gap:12px;align-items:center}
+  #grid{display:grid;grid-template-columns:repeat(9,56px);gap:3px}
+  .c{aspect-ratio:1;background:#06101c;border:1px solid #ffffff10;
+     border-radius:4px;display:flex;flex-direction:column;
+     align-items:center;justify-content:center;
+     font-size:9px;color:#3a4a5a;transition:.25s;position:relative}
+  .c .name{font-size:9px;color:#5a7288;font-weight:bold}
+  .c .wert{font-size:13px;color:#c8d8e8;margin-top:1px}
+  .c .el{font-size:7px;color:#3a4a5a;margin-top:1px}
+  .c.hin{border-color:#ff3ea5;box-shadow:0 0 16px #ff3ea5;
+         transform:scale(1.12);z-index:3}
+  .c.hin .name,.c.hin .wert{color:#ff3ea5}
+  .c.zurueck{border-color:#39ff88;box-shadow:0 0 16px #39ff88;
+             transform:scale(1.12);z-index:3}
+  .c.zurueck .name,.c.zurueck .wert{color:#39ff88}
+  .c.gesehen{border-color:#ffffff22;background:#08141e}
+  .c .pfeil{position:absolute;font-size:14px;color:#ff3ea5;opacity:0;
+            top:50%;left:50%;transform:translate(-50%,-50%);pointer-events:none}
+  .c.hin .pfeil{opacity:0.9;color:#ff3ea5}
+  .c.zurueck .pfeil{opacity:0.9;color:#39ff88}
+  #side{min-width:300px;font-size:11px;line-height:1.8}
+  h1{font-size:12px;letter-spacing:4px;color:#ff3ea5;margin-bottom:10px;
+     font-weight:400;text-transform:uppercase}
+  h2{font-size:9px;letter-spacing:2px;color:#5cf0ff;margin:12px 0 6px;
+     font-weight:400;text-transform:uppercase;border-bottom:1px solid #ffffff08;
+     padding-bottom:3px}
+  .r{display:flex;justify-content:space-between;padding:2px 0;
+     border-bottom:1px dashed #ffffff08;font-size:10px}
+  .r span:first-child{color:#5a7288}
+  .r span:last-child{color:#c8d8e8;font-weight:bold}
+  .pink{color:#ff3ea5!important}
+  .green{color:#39ff88!important}
+  .cyan{color:#5cf0ff!important}
+  .amber{color:#ff8a2a!important}
+  .violet{color:#b388ff!important}
+  button{width:100%;margin-top:6px;background:#0c1828;border:1px solid #ffffff22;
+         color:#c8d8e8;padding:8px;border-radius:3px;font-family:inherit;
+         font-size:10px;letter-spacing:2px;cursor:pointer;text-transform:uppercase}
+  button:hover{border-color:#ff3ea5;color:#ff3ea5}
+  button.on{border-color:#39ff88;color:#39ff88;background:#39ff8810}
+  button.hin{border-color:#ff3ea5;color:#ff3ea5}
+  button.zur{border-color:#39ff88;color:#39ff88}
+  #log{margin-top:10px;height:130px;overflow-y:auto;font-size:9.5px;
+       line-height:1.55;color:#5a7288;border-top:1px solid #ffffff08;padding-top:6px}
+  #log .ln{padding:1px 0;border-bottom:1px solid #ffffff04}
+  #log .t{color:#2a3644;margin-right:4px}
+</style>
+</head>
+<body>
+<div id="stage">
+  <div id="grid"></div>
+</div>
+<div id="side">
+  <h1>◈ feld für feld</h1>
+
+  <h2>◈ jetzt dran</h2>
+  <div class="r"><span>richtung</span><span id="sDir" class="pink">→ hin</span></div>
+  <div class="r"><span>feld</span><span id="sFeld" class="cyan">—</span></div>
+  <div class="r"><span>position</span><span id="sPos">0 / 81</span></div>
+
+  <h2>◈ die fünf maße</h2>
+  <div class="r"><span>ring</span><span id="sRing">—</span></div>
+  <div class="r"><span>spalte</span><span id="sSpalte">—</span></div>
+  <div class="r"><span>reihe</span><span id="sReihe">—</span></div>
+  <div class="r"><span>wert</span><span id="sWert" class="amber">—</span></div>
+  <div class="r"><span>element</span><span id="sEl" class="violet">—</span></div>
+
+  <h2>◈ takt</h2>
+  <div class="r"><span>hin gelaufen</span><span id="sHin" class="pink">0</span></div>
+  <div class="r"><span>zurück gelaufen</span><span id="sZur" class="green">0</span></div>
+  <div class="r"><span>runden</span><span id="sRun">0</span></div>
+
+  <button id="btnStep">▶ ein feld</button>
+  <button id="btnPlay" class="on">▶▶ takt</button>
+  <button id="btnReset">↺ reset</button>
+
+  <h2>◈ log</h2>
+  <div id="log"></div>
+</div>
+
+<script>
+"use strict";
+/* ═══════════════════════════════════════════════════════════════
+   FELD FÜR FELD · HIN (3→81) UND ZURÜCK (81→3)
+   Jedes Feld zeigt seine 5 Maße sichtbar
+   ═══════════════════════════════════════════════════════════════ */
+
+const N = 9;
+const NAMEN = 'deinorsuw'.split('');
+const ELEMENTE = [
+  {name:'eis',   col:'#5cf0ff'},
+  {name:'feuer', col:'#ff8a2a'},
+  {name:'dampf', col:'#b388ff'},
+  {name:'regen', col:'#39ff88'}
+];
+
+// ─── 81 FELDER MIT 5 MASSEN ─────────────────────────────────────
+const FELDER = [];
+for(let r=0;r<N;r++){
+  for(let c=0;c<N;c++){
+    const idx = r*N + c;
+    // wert aus der 3-9-81 achse
+    let wert;
+    if(idx < 27) wert = 3 * ((idx % 9) + 1);
+    else if(idx < 54) wert = 9 * ((idx % 9) + 1);
+    else wert = 81 / 9 * ((idx % 9) + 1);
+    wert = Math.round(wert);
+
+    FELDER.push({
+      idx,
+      pos: idx + 1,
+      ring: r,                    // 0..8
+      spalte: c,                  // 0..8
+      reihe: r + 1,               // 1..9
+      feld: NAMEN[c] + (r+1),
+      spaltenName: NAMEN[c],
+      wert,
+      element: ELEMENTE[(idx + r) % 4],
+      ringLabel: ['außen','mittel','innen'][Math.floor(r/3)],
+    });
+  }
+}
+
+// ─── STATE ──────────────────────────────────────────────────
+const S = {
+  richtung: 'hin',   // 'hin' | 'zurueck'
+  pos: 0,            // aktuelle position (0..80)
+  hin: 0,
+  zur: 0,
+  runden: 0,
+  playing: false,
+  timer: null
+};
+
+// ─── GRID BAUEN ─────────────────────────────────────────────
+const gEl = document.getElementById('grid');
+const zellen = [];
+FELDER.forEach(f => {
+  const d = document.createElement('div');
+  d.className = 'c';
+  d.innerHTML = `
+    <span class="name">${f.feld}</span>
+    <span class="wert">${f.wert}</span>
+    <span class="el">${f.element.name}</span>
+    <span class="pfeil">→</span>
+  `;
+  gEl.appendChild(d);
+  zellen.push(d);
+});
+
+// ─── LOG ──────────────────────────────────────────────────────
+const logEl = document.getElementById('log');
+function log(msg, cls=''){
+  const t = new Date().toLocaleTimeString('de-DE');
+  const d = document.createElement('div');
+  d.className='ln';
+  d.innerHTML = `<span class="t">[${t}]</span> <span class="${cls}">${msg}</span>`;
+  logEl.appendChild(d);
+  logEl.scrollTop = logEl.scrollHeight;
+  while(logEl.children.length > 30) logEl.removeChild(logEl.firstChild);
+}
+
+// ─── UI UPDATE ───────────────────────────────────────────────
+function updateUI(){
+  const f = FELDER[S.pos];
+  document.getElementById('sDir').textContent = S.richtung === 'hin' ? '→ hin' : '← zurück';
+  document.getElementById('sDir').className = S.richtung === 'hin' ? 'pink' : 'green';
+  document.getElementById('sFeld').textContent = f.feld;
+  document.getElementById('sPos').textContent = `${f.pos} / 81`;
+  document.getElementById('sRing').textContent = `ring ${f.ring+1} · ${f.ringLabel}`;
+  document.getElementById('sSpalte').textContent = `${f.spaltenName} (spalte ${f.spalte+1})`;
+  document.getElementById('sReihe').textContent = `reihe ${f.reihe}`;
+  document.getElementById('sWert').textContent = f.wert;
+  document.getElementById('sEl').textContent = f.element.name;
+  document.getElementById('sEl').style.color = f.element.col;
+  document.getElementById('sHin').textContent = S.hin;
+  document.getElementById('sZur').textContent = S.zur;
+  document.getElementById('sRun').textContent = S.runden;
+}
+
+// ─── EIN SCHRITT ─────────────────────────────────────────────
+function step(){
+  const f = FELDER[S.pos];
+  const z = zellen[S.pos];
+
+  // vorherige markierung als "gesehen" lassen
+  zellen.forEach(el => el.classList.remove('hin','zurueck'));
+
+  // aktuelle markieren
+  z.classList.remove('gesehen');
+  if(S.richtung === 'hin'){
+    z.classList.add('hin');
+    z.querySelector('.pfeil').textContent = '→';
+  } else {
+    z.classList.add('zurueck');
+    z.querySelector('.pfeil').textContent = '←';
+  }
+
+  // log
+  const cls = S.richtung === 'hin' ? 'pink' : 'green';
+  log(`${S.richtung === 'hin' ? '→' : '←'} ${f.feld} · wert ${f.wert} · ${f.element.name}`, cls);
+
+  // nächster schritt
+  if(S.richtung === 'hin'){
+    S.hin++;
+    S.pos++;
+    if(S.pos >= 81){
+      // am ende → wende
+      S.richtung = 'zurueck';
+      S.pos = 80;
+      // alle als gesehen markieren
+      zellen.forEach(el => el.classList.add('gesehen'));
+      log('◈ wendepunkt · 81 erreicht · dreht', 'pink');
+    }
+  } else {
+    S.zur++;
+    S.pos--;
+    if(S.pos < 0){
+      // zurück am anfang → neue runde
+      S.richtung = 'hin';
+      S.pos = 0;
+      S.runden++;
+      zellen.forEach(el => el.classList.remove('gesehen'));
+      log(`◈ runde ${S.runden} · zurück am anfang`, 'green');
+    }
+  }
+
+  updateUI();
+}
+
+// ─── PLAY / PAUSE ────────────────────────────────────────────
+function togglePlay(){
+  S.playing = !S.playing;
+  const b = document.getElementById('btnPlay');
+  if(S.playing){
+    b.classList.add('on');
+    b.textContent = '⏸ stop';
+    S.timer = setInterval(step, 200);
+  } else {
+    b.classList.remove('on');
+    b.textContent = '▶▶ takt';
+    clearInterval(S.timer);
+  }
+}
+
+// ─── BUTTONS ─────────────────────────────────────────────────
+document.getElementById('btnStep').onclick = step;
+document.getElementById('btnPlay').onclick = togglePlay;
+document.getElementById('btnReset').onclick = () => {
+  clearInterval(S.timer);
+  S.playing = false;
+  S.richtung = 'hin';
+  S.pos = 0;
+  S.hin = 0;
+  S.zur = 0;
+  S.runden = 0;
+  zellen.forEach(el => el.classList.remove('hin','zurueck','gesehen'));
+  document.getElementById('btnPlay').classList.remove('on');
+  document.getElementById('btnPlay').textContent = '▶▶ takt';
+  logEl.innerHTML = '';
+  log('↺ reset · 81 felder warten', 'cyan');
+  updateUI();
+};
+
+// ─── INIT ────────────────────────────────────────────────────
+log('◈ 81 felder · 5 maße je feld', 'pink');
+log('→ hin: a1 → i9 · zurück: i9 → a1', 'cyan');
+log('◈ klick "ein feld" oder "takt"', 'amber');
+updateUI();
+
+// public
+window.feld = {
+  step,
+  play: togglePlay,
+  reset: () => document.getElementById('btnReset').click(),
+  alle: () => FELDER,
+  bei: (i) => FELDER[i],
+  state: () => ({...S})
+};
+</script>
+</body>
+</html>
