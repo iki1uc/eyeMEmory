@@ -1,783 +1,484 @@
 <!DOCTYPE html>
 <html lang="de">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width,initial-scale=1">
-<title>NANOWÜRFEL · 9→81→9 · ALL698869ALL</title>
-<style>
-  *{margin:0;padding:0;box-sizing:border-box}
-  body{background:#000;color:#0f0;font-family:'Consolas',monospace;padding:16px;line-height:1.4}
-  ::-webkit-scrollbar{width:6px}::-webkit-scrollbar-thumb{background:#0f0}
-  h1{font-size:14px;letter-spacing:4px;color:#6cf;font-weight:400;margin-bottom:2px}
-  h1 small{display:block;font-size:8px;letter-spacing:3px;color:#0f05;margin-top:4px}
-  .layout{display:grid;grid-template-columns:340px 1fr 300px;gap:12px;margin-top:12px}
-  @media(max-width:1100px){.layout{grid-template-columns:1fr 1fr}.layout>:nth-child(3){grid-column:1/-1}}
-  @media(max-width:640px){.layout{grid-template-columns:1fr}}
-  .panel{background:#0a0a0a;border:1px solid #0f03;padding:12px;border-radius:4px;margin-bottom:12px}
-  .panel h2{font-size:9px;letter-spacing:3px;color:#6cf;font-weight:400;text-transform:uppercase;
-    border-bottom:1px solid #0f03;padding-bottom:5px;margin-bottom:10px}
-  .panel h2 span{float:right;color:#0f05}
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>🧿 QUECKSILBER · METABALL · ECHTE FLUID-PHYSIK</title>
 
-  /* ─── NanoWürfel X³→X²→X→1 ─── */
-  .wurfel{display:flex;flex-direction:column;gap:6px}
-  .wurfel .row{display:flex;gap:6px;align-items:center}
-  .wurfel button{
-    flex:1;background:#000;border:1px solid #0f05;color:#0f0;
-    padding:8px 4px;font-family:inherit;font-size:11px;cursor:pointer;
-    border-radius:3px;transition:all .15s;
-  }
-  .wurfel button:hover{border-color:#6cf;color:#6cf}
-  .wurfel button.hot{background:#0f0a;border-color:#6cf;color:#6cf}
-  .wurfel .arr{color:#0f04;font-size:12px;width:16px;text-align:center}
-  .wurfel .lab{font-size:8px;color:#0f05;letter-spacing:2px;text-transform:uppercase;margin-bottom:2px}
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
 
-  /* ─── 9 Ringe → 81 ─── */
-  .ringe{
-    display:grid;grid-template-columns:repeat(9,1fr);gap:3px;
-    margin-bottom:10px;
-  }
-  .ring-col{
-    display:flex;flex-direction:column;gap:3px;
-  }
-  .ring-lab{
-    font-size:7px;text-align:center;color:#0f06;letter-spacing:1px;
-    padding:1px 0;border-bottom:1px solid #0f03;
-  }
-  .cell{
-    aspect-ratio:1;border:1px solid #0f05;border-radius:2px;
-    background:#000;display:flex;align-items:center;justify-content:center;
-    font-size:8px;color:#0f07;cursor:pointer;transition:all .12s;
-    position:relative;
-  }
-  .cell:hover{border-color:#6cf;color:#6cf}
-  .cell.mitte{background:#0f02;border-color:#6cf6;color:#6cf}
-  .cell.aktiv{background:#0f0;color:#000;border-color:#0f0;box-shadow:0 0 8px #0f0}
-  .cell.gemittet{background:#ff66ff22;border-color:#ff66ff55;color:#ff66ff}
-  .cell.kern{background:#ff66ff;color:#000;border-color:#ff66ff;box-shadow:0 0 12px #ff66ff}
+    body {
+      background: radial-gradient(ellipse at 20% 30%, #1a1a24, #000000);
+      min-height: 100vh;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      font-family: 'Segoe UI', 'Consolas', monospace;
+      padding: 12px;
+      color: #c0d0d0;
+    }
 
-  /* ─── Mitte-Verteiler ─── */
-  .verteiler{
-    display:grid;grid-template-columns:auto 1fr auto;gap:10px;align-items:center;
-    background:#000;border:1px solid #0f05;padding:10px;border-radius:4px;
-  }
-  .verteiler .kern-num{
-    font-size:20px;color:#ff66ff;text-shadow:0 0 8px #ff66ff;
-    min-width:44px;text-align:center;
-  }
-  .verteiler .ring-info{font-size:9px;color:#0f08;line-height:1.7}
-  .verteiler .ring-info b{color:#6cf;font-weight:400}
-  .verteiler .share{
-    font-size:10px;color:#0f0;text-align:right;
-  }
+    .container {
+      max-width: 1000px;
+      width: 100%;
+      background: rgba(12, 12, 20, 0.5);
+      backdrop-filter: blur(2px);
+      border-radius: 32px;
+      padding: 20px 24px 30px;
+      border: 1px solid rgba(180, 200, 220, 0.08);
+      box-shadow: 0 20px 60px rgba(0, 0, 0, 0.8), inset 0 0 60px rgba(200, 220, 240, 0.02);
+    }
 
-  /* ─── Q1–Q4 ─── */
-  .qgrid{display:grid;grid-template-columns:1fr 1fr;gap:6px}
-  .q{background:#000;border:1px solid #0f05;padding:8px;border-radius:4px;cursor:pointer;transition:all .15s}
-  .q:hover{border-color:#6cf}
-  .q .qn{font-size:9px;color:#0f05;letter-spacing:2px}
-  .q .qt{font-size:11px;color:#6cf;margin-top:2px}
-  .q .qv{font-size:8px;color:#0f07;margin-top:4px}
-  .q.on{background:#6cf15;border-color:#6cf;box-shadow:0 0 14px #6cf3}
+    .header {
+      display: flex;
+      justify-content: space-between;
+      align-items: baseline;
+      flex-wrap: wrap;
+      border-bottom: 1px solid rgba(180, 200, 220, 0.06);
+      padding-bottom: 6px;
+      margin-bottom: 14px;
+    }
+    .header h1 {
+      font-size: 24px;
+      font-weight: 300;
+      letter-spacing: 4px;
+      background: linear-gradient(135deg, #e0e8f0, #b0c8d8, #8098b0, #c0d8e8);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .header h1 small {
+      font-size: 11px;
+      letter-spacing: 2px;
+      -webkit-text-fill-color: #4a5a6a;
+      color: #4a5a6a;
+    }
 
-  /* ─── Polaritäten ─── */
-  .polar{
-    display:grid;grid-template-columns:repeat(3,1fr);gap:4px;
-    text-align:center;
-  }
-  .pol{
-    background:#000;border:1px solid #0f05;padding:6px 4px;border-radius:3px;
-    font-size:11px;color:#0f0;cursor:pointer;
-  }
-  .pol:hover{border-color:#6cf;color:#6cf}
-  .pol .sub{display:block;font-size:7px;color:#0f05;letter-spacing:1px;margin-top:3px}
-  .pol.nc{grid-column:1/-1;border-color:#6cf5;color:#6cf;font-size:13px}
+    .status-badge { display: flex; gap: 16px; font-size: 11px; color: #5a7a8a; letter-spacing: 1px; flex-wrap: wrap; }
+    .status-badge span { display: flex; align-items: center; gap: 5px; }
+    .dot { display: inline-block; width: 8px; height: 8px; border-radius: 50%; background: #2a4a5a; transition: 0.3s; }
+    .dot.on { background: #8cf0d0; box-shadow: 0 0 12px #8cf0d0; }
+    .dot.gold { background: #f0d080; box-shadow: 0 0 12px #f0d080; }
 
-  /* ─── 4D Anzeige ─── */
-  .vierd{display:grid;grid-template-columns:1fr 1fr;gap:6px;font-size:10px}
-  .vierd .dim{
-    background:#000;border:1px solid #0f05;padding:8px;border-radius:3px;
-  }
-  .vierd .dim .k{color:#0f05;font-size:8px;letter-spacing:2px}
-  .vierd .dim .v{color:#0f0;font-size:14px;margin-top:3px}
-  .vierd .dim.hot{border-color:#6cf5}
-  .vierd .dim.hot .v{color:#6cf}
+    .canvas-wrap {
+      position: relative;
+      margin: 10px 0 18px;
+      border-radius: 20px;
+      background: rgba(4, 6, 10, 0.85);
+      border: 1px solid rgba(120, 160, 190, 0.04);
+      box-shadow: inset 0 0 40px rgba(0, 0, 0, 0.7);
+      aspect-ratio: 4 / 3;
+      width: 100%;
+      overflow: hidden;
+      cursor: crosshair;
+    }
+    #gooCanvas, #highlightCanvas {
+      position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+    }
+    #gooCanvas { filter: blur(9px) contrast(26); }
+    #highlightCanvas { pointer-events: none; }
 
-  /* ─── 3D Canvas ─── */
-  .stage{
-    background:#000;border:1px solid #0f05;border-radius:4px;
-    display:block;width:100%;aspect-ratio:1/1;max-height:420px;
-  }
-  .achslab{display:flex;justify-content:space-between;font-size:8px;color:#0f06;
-    letter-spacing:1px;margin-top:6px}
-  .achslab b{color:#6cf;font-weight:400}
+    .hint {
+      position: absolute; bottom: 8px; left: 12px;
+      font-size: 10px; color: rgba(200,220,240,0.35);
+      letter-spacing: 1px; pointer-events: none;
+    }
 
-  /* ─── Log ─── */
-  .log{
-    background:#000;border:1px solid #0f05;padding:8px;border-radius:4px;
-    height:130px;overflow-y:auto;font-size:9px;line-height:1.7;
-  }
-  .log .t{color:#0f04}
-  .log .op{color:#6cf}
-  .log .w{color:#ffd700}
-  .log .ok{color:#0f0}
-  .log .pu{color:#ff66ff}
+    .controls { display: flex; flex-wrap: wrap; gap: 10px 14px; align-items: center; margin: 8px 0 6px; padding: 6px 4px; border-top: 1px solid rgba(100, 140, 170, 0.04); }
+    .controls button {
+      background: rgba(20, 28, 36, 0.5);
+      border: 1px solid rgba(120, 160, 190, 0.08);
+      color: #9ab0c0;
+      padding: 6px 16px;
+      border-radius: 30px;
+      font-size: 12px;
+      font-family: inherit;
+      letter-spacing: 1.2px;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+    .controls button:hover { background: rgba(40, 70, 90, 0.3); border-color: rgba(160, 200, 240, 0.2); color: #d0e8f8; transform: translateY(-1px); }
+    .controls button.primary { border-color: rgba(180, 220, 255, 0.15); color: #c0dce8; }
+    .controls button.primary.active { background: rgba(80,200,255,0.15); border-color: #80c0e0; color: #d0e8f8; }
+    .controls button.ds9 { border-color: rgba(255, 215, 0, 0.1); color: #e8d080; }
+    .controls button.ds9.active { background: rgba(255,215,0,0.12); border-color: #f0d080; }
+    .controls button.danger { border-color: rgba(255, 80, 80, 0.08); color: #d06060; }
+    .controls button.danger:hover { background: rgba(255, 80, 80, 0.06); }
 
-  /* ─── Win / Eich ─── */
-  .eich{
-    display:flex;gap:6px;font-size:10px;
-  }
-  .eich .item{
-    flex:1;text-align:center;background:#000;border:1px solid #0f05;
-    padding:6px 2px;border-radius:3px;
-  }
-  .eich .item .k{font-size:8px;color:#0f05;letter-spacing:1px;display:block}
-  .eich .item .v{color:#6cf;font-size:12px;margin-top:2px}
-  .eich .item .v.win{color:#ff66ff}
+    .info-row { display: flex; flex-wrap: wrap; justify-content: space-between; font-size: 11px; color: #4a6a7a; padding: 4px 0; border-top: 1px solid rgba(100, 140, 170, 0.03); margin-top: 4px; }
+    .info-row .val { color: #aac8d8; font-weight: 400; }
 
-  footer{
-    margin-top:14px;padding-top:10px;border-top:1px solid #0f04;
-    display:flex;justify-content:space-between;flex-wrap:wrap;
-    font-size:8px;color:#0f05;letter-spacing:3px;
-  }
-  .siegel{color:#ff66ff;letter-spacing:6px;font-size:9px}
-</style>
+    .log {
+      background: rgba(0, 0, 0, 0.3);
+      border-radius: 14px;
+      padding: 6px 14px;
+      font-size: 10px;
+      color: #4a6a7a;
+      max-height: 70px;
+      overflow-y: auto;
+      border: 1px solid rgba(100, 140, 170, 0.02);
+      margin-top: 8px;
+      line-height: 1.6;
+    }
+    .log .ok { color: #80d0b0; }
+    .log .flow { color: #d0b080; }
+    .log .whirl { color: #c080d0; }
+    .log .ds9 { color: #e8d080; }
+    .log .magnet { color: #70c8ff; }
+
+    .footer { text-align: center; margin-top: 12px; color: #1a2a30; font-size: 9px; letter-spacing: 3px; }
+    .footer .gold { color: #e8d080; }
+    .footer .silver { color: #b0c8d8; }
+
+    @media (max-width: 700px) {
+      .container { padding: 12px; }
+      .header h1 { font-size: 17px; letter-spacing: 2px; }
+      .controls button { font-size: 10px; padding: 4px 12px; }
+      .status-badge { font-size: 9px; gap: 8px; }
+    }
+  </style>
 </head>
 <body>
 
-<h1>
-  ◈ NANOWÜRFEL · X³→X²→X→1
-  <small>9→uni→81→mitte→9 · Q1-Q4 · 4D · ALL698869ALL</small>
-</h1>
+<div class="container">
 
-<div class="layout">
-
-  <!-- ═══ LINKS ═══ -->
-  <div>
-
-    <div class="panel">
-      <h2>NANO · WÜRFEL <span>operator</span></h2>
-      <div class="wurfel">
-        <div class="lab">zerfall</div>
-        <div class="row">
-          <button data-fx="X3X2">X³</button>
-          <span class="arr">→</span>
-          <button data-fx="X2X">X²</button>
-          <span class="arr">→</span>
-          <button data-fx="X1">X</button>
-          <span class="arr">→</span>
-          <button data-fx="X0">1</button>
-        </div>
-        <div class="lab" style="margin-top:6px">aufbau</div>
-        <div class="row">
-          <button data-fx="X0X">1</button>
-          <span class="arr">→</span>
-          <button data-fx="XX2">X</button>
-          <span class="arr">→</span>
-          <button data-fx="X2X3">X²</button>
-          <span class="arr">→</span>
-          <button data-fx="X3X2" data-rev="1">X³</button>
-        </div>
-        <div class="lab" style="margin-top:6px">sprung</div>
-        <div class="row">
-          <button data-fx="JUMP">X² → 1 → X³ → X</button>
-        </div>
-      </div>
+  <div class="header">
+    <h1>🧿 QUECKSILBER <small>METABALL · ECHTE FLUID-PHYSIK</small></h1>
+    <div class="status-badge">
+      <span><span class="dot" id="dotMagnet"></span> MAGNET</span>
+      <span><span class="dot" id="dotDs9"></span> DS9</span>
     </div>
-
-    <div class="panel">
-      <h2>MITTEN · VERTEILER <span id="mitteRing">ring 5</span></h2>
-      <div class="verteiler">
-        <div class="kern-num" id="kern">41</div>
-        <div class="ring-info">
-          Position <b id="kernPos">5·5</b><br>
-          Ring <b id="kernR">5</b> · Slot <b id="kernS">5</b><br>
-          teilt an <b id="shareN">81</b> Zellen
-        </div>
-        <div class="share">
-          <div id="shareSum">=81</div>
-          <div style="font-size:8px;color:#0f05">summe</div>
-        </div>
-      </div>
-      <div style="margin-top:8px;display:flex;gap:4px">
-        <button class="wurfel-button" id="btnMitteAlle" style="flex:1;background:#000;border:1px solid #ff66ff55;color:#ff66ff;padding:6px;font-family:inherit;font-size:9px;cursor:pointer;border-radius:3px">◈ ALLE 9 MITTEN TEILEN</button>
-        <button id="btnReset" style="flex:1;background:#000;border:1px solid #0f05;color:#0f0;padding:6px;font-family:inherit;font-size:9px;cursor:pointer;border-radius:3px">↺ RESET</button>
-      </div>
-    </div>
-
-    <div class="panel">
-      <h2>Q1–Q4 <span>quanten</span></h2>
-      <div class="qgrid">
-        <div class="q on" data-q="Q1">
-          <div class="qn">Q1</div>
-          <div class="qt">QI</div>
-          <div class="qv">zustand · N</div>
-        </div>
-        <div class="q" data-q="Q2">
-          <div class="qn">Q2</div>
-          <div class="qt">ORBIT</div>
-          <div class="qv">raum · O</div>
-        </div>
-        <div class="q" data-q="Q3">
-          <div class="qn">Q3</div>
-          <div class="qt">OPERATOR</div>
-          <div class="qv">winkel · S</div>
-        </div>
-        <div class="q" data-q="Q4">
-          <div class="qn">Q4</div>
-          <div class="qt">EVO</div>
-          <div class="qv">zeit · W</div>
-        </div>
-      </div>
-    </div>
-
-    <div class="panel">
-      <h2>POLARITÄT <span>AH HA ÄH HÄ</span></h2>
-      <div class="polar">
-        <div class="pol" data-p="HÄ">HÄ<span class="sub">oben</span></div>
-        <div class="pol" data-p="ÄH">ÄH<span class="sub">unten</span></div>
-        <div class="pol" data-p="AH">AH<span class="sub">links</span></div>
-        <div class="pol" data-p="HA">HA<span class="sub">rechts</span></div>
-        <div class="pol nc" data-p="NC">◉ NC ◉<span class="sub">zentrum</span></div>
-      </div>
-    </div>
-
-    <div class="panel">
-      <h2>EICH · WIN <span>0.777</span></h2>
-      <div class="eich">
-        <div class="item"><span class="k">EICH</span><div class="v" id="eichV">0.777</div></div>
-        <div class="item"><span class="k">WIN²</span><div class="v" id="win2V">0.604</div></div>
-        <div class="item"><span class="k">WIN³</span><div class="v win" id="win3V">0.470</div></div>
-      </div>
-    </div>
-
   </div>
 
-  <!-- ═══ MITTE ═══ -->
-  <div>
-
-    <div class="panel">
-      <h2>◈ 9 RINGE · 81 ZELLEN <span id="netStat">KALT</span></h2>
-      <div class="ringe" id="ringe"></div>
-      <div class="achslab">
-        <span>ring 1 → 9</span>
-        <span>slot <b>1..9</b> je ring</span>
-        <span>mitte <b>5·5</b> = 41</span>
-      </div>
-    </div>
-
-    <div class="panel">
-      <h2>LAGE · 3D <span id="curMove">—</span></h2>
-      <canvas id="stage" class="stage"></canvas>
-      <div class="achslab">
-        <span>x: <b id="cx">0</b></span>
-        <span>y: <b id="cy">0</b></span>
-        <span>z: <b id="cz">0</b></span>
-        <span>w: <b id="cw">0</b></span>
-      </div>
-    </div>
-
-    <div class="panel">
-      <h2>4D · ZUSTAND <span>zeit · winkel · raum</span></h2>
-      <div class="vierd">
-        <div class="dim hot"><div class="k">1D · LINIE</div><div class="v" id="d1">iki – ÄH</div></div>
-        <div class="dim"><div class="k">2D · FLÄCHE</div><div class="v" id="d2">AH·HA·NC</div></div>
-        <div class="dim"><div class="k">3D · RAUM</div><div class="v" id="d3">1·uc·2/4/6</div></div>
-        <div class="dim"><div class="k">4D · MAXI</div><div class="v" id="d4">Z+Z+W+U</div></div>
-      </div>
-    </div>
-
+  <div class="canvas-wrap" id="canvasWrap">
+    <canvas id="gooCanvas"></canvas>
+    <canvas id="highlightCanvas"></canvas>
+    <div class="hint">Klick auf Tropfen = teilen · Klick auf Leerraum = neuer Tropfen</div>
   </div>
 
-  <!-- ═══ RECHTS ═══ -->
-  <div>
-
-    <div class="panel">
-      <h2>LAGE · LIVE <span id="mode">IDLE</span></h2>
-      <div style="font-size:10px;background:#000;border:1px solid #0f05;padding:10px;border-radius:4px;line-height:1.8">
-        <div>X <span style="color:#0f05;display:inline-block;width:20px">→</span><b id="lx" style="color:#6cf">0</b> <span style="color:#0f04">HYPE</span></div>
-        <div>Y <span style="color:#0f05;display:inline-block;width:20px">→</span><b id="ly" style="color:#6cf">0</b> <span style="color:#0f04">CALC</span></div>
-        <div>Z <span style="color:#0f05;display:inline-block;width:20px">→</span><b id="lz" style="color:#6cf">0</b> <span style="color:#0f04">iki2li</span></div>
-        <div>W <span style="color:#0f05;display:inline-block;width:20px">→</span><b id="lw" style="color:#ff66ff">0</b> <span style="color:#0f04">zeit</span></div>
-        <div style="margin-top:6px;border-top:1px solid #0f04;padding-top:6px">
-          <span style="color:#0f05">modi</span> <b id="lmodi" style="color:#ff66ff">—</b>
-          <span style="color:#0f05;margin-left:8px">q</span> <b id="lq" style="color:#6cf">Q1</b>
-          <span style="color:#0f05;margin-left:8px">pol</span> <b id="lpol" style="color:#0f0">NC</b>
-        </div>
-      </div>
-    </div>
-
-    <div class="panel">
-      <h2>SEQUENZ <span id="seqStep">0/9</span></h2>
-      <div style="display:flex;gap:3px;flex-wrap:wrap;font-size:10px" id="seq">
-        <span style="border:1px solid #0f05;padding:3px 7px;border-radius:3px">◉</span>
-        <span style="border:1px solid #0f05;padding:3px 7px;border-radius:3px">3</span>
-        <span style="border:1px solid #0f05;padding:3px 7px;border-radius:3px">9</span>
-        <span style="border:1px solid #0f05;padding:3px 7px;border-radius:3px">◎</span>
-        <span style="border:1px solid #0f05;padding:3px 7px;border-radius:3px">81</span>
-        <span style="border:1px solid #0f05;padding:3px 7px;border-radius:3px">◆</span>
-        <span style="border:1px solid #0f05;padding:3px 7px;border-radius:3px">△</span>
-        <span style="border:1px solid #0f05;padding:3px 7px;border-radius:3px">27</span>
-        <span style="border:1px solid #0f05;padding:3px 7px;border-radius:3px">▣</span>
-        <span style="border:1px solid #0f05;padding:3px 7px;border-radius:3px">3↺</span>
-      </div>
-      <div style="margin-top:8px">
-        <button id="btnStep" style="width:100%;background:#000;border:1px solid #6cf5;color:#6cf;padding:7px;font-family:inherit;font-size:10px;cursor:pointer;border-radius:3px;letter-spacing:2px">▶ NÄCHSTER SCHRITT</button>
-      </div>
-    </div>
-
-    <div class="panel">
-      <h2>LOG <span id="logCount">0</span></h2>
-      <div class="log" id="log">
-        <div><span class="t">[init]</span> <span class="ok">nanowürfel bereit</span></div>
-        <div><span class="t">[init]</span> <span class="pu">9 ringe · 81 zellen · mitte 41</span></div>
-      </div>
-    </div>
-
+  <div class="controls">
+    <button class="primary" id="btnMagnet">🧲 MAGNET</button>
+    <button id="btnAdd">💧 TROPFEN +</button>
+    <button id="btnSplit">✂ SPLIT</button>
+    <button id="btnQuake">⚡ QUAKE</button>
+    <button class="ds9" id="btnDs9">★ DS9</button>
+    <button class="danger" id="btnReset">⟲ RESET</button>
   </div>
 
+  <div class="info-row">
+    <span>TROPFEN: <span class="val" id="countDisplay">0</span></span>
+    <span>MASSE (Σr²): <span class="val" id="massDisplay">0</span></span>
+    <span>VERSCHMOLZEN: <span class="val" id="mergeDisplay">0</span></span>
+    <span>GETEILT: <span class="val" id="splitDisplay">0</span></span>
+  </div>
+
+  <div class="log" id="log">
+    [🧿] Metaball-Engine bereit · echte Masse-/Impulserhaltung aktiv
+  </div>
+
+  <div class="footer">
+    <span class="gold">★</span> QUECKSILBER · <span class="silver">flüssiges Metall, keine Symbol-Grafik</span>
+  </div>
 </div>
 
-<footer>
-  <span>◈ NANOWÜRFEL · X³→X²→X→1 · 9→81→9 · Q1-Q4 · 4D · iki1uc</span>
-  <span class="siegel">ALL698869ALL</span>
-</footer>
-
 <script>
-// ═══════════════════════════════════════════════════════════════
-// NANOWÜRFEL · 9 Ringe à 9 · Mitte 41 · 4D
-// ═══════════════════════════════════════════════════════════════
+// ================================================================
+// QUECKSILBER · METABALL-PHYSIK
+// ================================================================
 
-const $ = id => document.getElementById(id);
+const wrap = document.getElementById('canvasWrap');
+const gooCanvas = document.getElementById('gooCanvas');
+const hiCanvas = document.getElementById('highlightCanvas');
+const gooCtx = gooCanvas.getContext('2d');
+const hiCtx = hiCanvas.getContext('2d');
 
-// ─── ZUSTAND ─────────────────────────────────────────────────
-const S = {
-  // 9 Ringe à 9 Slots
-  ringe: Array.from({length:9}, (_, r) =>
-    Array.from({length:9}, (_, s) => ({
-      r: r+1, s: s+1,
-      pos: r*9 + s + 1,   // 1..81
-      wert: (r+1) * (s+1),
-      mitte: false,
-      gemittet: false,
-      aktiv: false
-    }))
-  ),
-  // Mitte (Position 41 = Ring 5, Slot 5)
-  kern: 41,
-  kernRing: 5,
-  kernSlot: 5,
-  // LAGE x/y/z/w
-  x: 0, y: 0, z: 0, w: 0,
-  // Würfel-Modus
-  X: 3,          // Basis
-  tier: 0,       // 0=X³, 1=X², 2=X, 3=1
-  // Q1-Q4
-  q: "Q1",
-  // Polarität
-  pol: "NC",
-  // Sequenz
-  seqIdx: 0,
-  // Eich
-  eich: 0.777,
-  win2: 0.777 * 0.777,
-  win3: 0.777 ** 3,
-  logN: 0,
-  // Zeit
-  t: 0
-};
+let W = 0, H = 0, DPR = 1;
 
-// ─── SEQUENZ ─────────────────────────────────────────────────
-const SEQ = [
-  {sym:"◉", name:"start",    fx:s=>({...s, w:0})},
-  {sym:"3",  name:"wurzel-3", fx:s=>({...s, x:s.x+3, z:s.z-1})},
-  {sym:"9",  name:"wurzel-9", fx:s=>({...s, y:s.y+9, z:s.z-2})},
-  {sym:"◎",  name:"auge",     fx:s=>({...s, x:s.x*3, w:s.w+1})},
-  {sym:"81", name:"neun-neun",fx:s=>({...s, y:s.y*9, z:s.z+3})},
-  {sym:"◆",  name:"kern",     fx:s=>({...s, z:s.z*3, w:s.w+9})},
-  {sym:"△",  name:"streuung", fx:s=>({...s, x:s.x-9, y:s.y-3})},
-  {sym:"27", name:"drei-drei",fx:s=>({...s, z:s.z-27, w:s.w+27})},
-  {sym:"▣",  name:"siegel",   fx:s=>({...s, x:s.x+756})},
-  {sym:"3↺", name:"zyklus",   fx:s=>({...s, x:0, y:0, z:0, w:0})}
-];
+function resize() {
+  const rect = wrap.getBoundingClientRect();
+  W = rect.width; H = rect.height;
+  DPR = window.devicePixelRatio || 1;
+  [gooCanvas, hiCanvas].forEach(c => {
+    c.width = W * DPR;
+    c.height = H * DPR;
+  });
+  gooCtx.setTransform(DPR, 0, 0, DPR, 0, 0);
+  hiCtx.setTransform(DPR, 0, 0, DPR, 0, 0);
+}
+window.addEventListener('resize', resize);
 
-// ─── WÜRFEL-FX ───────────────────────────────────────────────
-const WURFEL_FX = {
-  X3X2:  s => ({...s, X: s.X, tier: 1, x: s.x * s.X, note:"X³→X²"}),
-  X2X:   s => ({...s, tier: 2, x: s.x * s.X / 3, note:"X²→X"}),
-  X1:    s => ({...s, tier: 3, x: s.x / s.X, note:"X→1"}),
-  X0:    s => ({...s, tier: 3, x: 0, y: 0, z: 0, w: 0, note:"reset 1"}),
-  X0X:   s => ({...s, tier: 2, x: s.X, note:"1→X"}),
-  XX2:   s => ({...s, tier: 1, x: s.x * s.X, note:"X→X²"}),
-  X2X3:  s => ({...s, tier: 0, x: s.x * s.X, note:"X²→X³"}),
-  JUMP:  s => {
-    // X² → 1 → X³ → X
-    const z2 = s.x * s.X;
-    const eins = 0;
-    const z3 = s.X ** 3;
-    const x = s.X;
-    return {...s, tier: 2, x: z2, y: eins, z: z3, w: x, note:"sprung"};
+// ─── PHYSIK-KONSTANTEN ─────────────────────────────────────────
+const GRAVITY = 0.25;
+const DAMP = 0.986;
+const WALL_BOUNCE = 0.55;
+const MAGNET_STRENGTH = 0.9;
+const MERGE_FACTOR = 0.6;   // Abstand < sumR * MERGE_FACTOR → verschmelzen
+const REPEL_FACTOR = 0.015;
+const MIN_SPLIT_R = 15;
+const MAX_DROPS = 60;
+
+// ─── STATE ──────────────────────────────────────────────────────
+let drops = [];
+let mergeCount = 0, splitCount = 0;
+let magnetOn = false, ds9On = false;
+const mouse = { x: -1000, y: -1000, active: false };
+
+class Drop {
+  constructor(x, y, r, vx = 0, vy = 0) {
+    this.x = x; this.y = y; this.r = r; this.vx = vx; this.vy = vy;
   }
-};
-
-// ─── LOG ─────────────────────────────────────────────────────
-function log(msg, type="ok"){
-  const l = $("log");
-  const t = new Date().toLocaleTimeString();
-  const d = document.createElement("div");
-  d.innerHTML = `<span class="t">[${t}]</span> <span class="${type}">${msg}</span>`;
-  l.appendChild(d);
-  if(l.children.length > 40) l.removeChild(l.children[0]);
-  l.scrollTop = l.scrollHeight;
-  $("logCount").textContent = ++S.logN;
 }
 
-// ═══════════════════════════════════════════════════════════════
-// 9 RINGE RENDERN
-// ═══════════════════════════════════════════════════════════════
-function renderRinge(){
-  const c = $("ringe");
-  c.innerHTML = "";
-  // 9 Spalten (Ringe 1..9), jede Spalte 9 Zellen (Slots 1..9)
-  for(let s=0; s<9; s++){
-    const col = document.createElement("div");
-    col.className = "ring-col";
-    const lab = document.createElement("div");
-    lab.className = "ring-lab";
-    lab.textContent = "R" + (s+1);
-    col.appendChild(lab);
-    for(let r=0; r<9; r++){
-      const cell = document.createElement("div");
-      cell.className = "cell";
-      const d = S.ringe[r][s];
-      if(d.pos === S.kern) cell.classList.add("kern");
-      else if(d.r === S.kernRing || d.s === S.kernSlot) cell.classList.add("mitte");
-      if(d.aktiv) cell.classList.add("aktiv");
-      if(d.gemittet) cell.classList.add("gemittet");
-      cell.textContent = d.pos;
-      cell.title = `R${d.r}·S${d.s} → pos ${d.pos} = ${d.wert}`;
-      cell.onclick = () => clickCell(r, s);
-      col.appendChild(cell);
+function spawnDrop(x, y, r) {
+  if (drops.length >= MAX_DROPS) return null;
+  const d = new Drop(x, y, r, (Math.random() - 0.5) * 1.5, (Math.random() - 0.5) * 1.5);
+  drops.push(d);
+  return d;
+}
+
+function initDrops() {
+  drops = [];
+  mergeCount = 0; splitCount = 0;
+  for (let i = 0; i < 10; i++) {
+    spawnDrop(
+      40 + Math.random() * (W - 80),
+      20 + Math.random() * (H * 0.4),
+      12 + Math.random() * 16
+    );
+  }
+}
+
+// ─── PHYSIK-SCHRITT ─────────────────────────────────────────────
+function step() {
+  for (const d of drops) {
+    if (magnetOn && mouse.active) {
+      const dx = mouse.x - d.x, dy = mouse.y - d.y;
+      const dist = Math.hypot(dx, dy) || 1;
+      d.vx += (dx / dist) * MAGNET_STRENGTH * 0.4;
+      d.vy += (dy / dist) * MAGNET_STRENGTH * 0.4;
+    } else {
+      d.vy += GRAVITY;
     }
-    c.appendChild(col);
-  }
-}
+    d.vx *= DAMP; d.vy *= DAMP;
+    d.x += d.vx; d.y += d.vy;
 
-// Klick auf Zelle → Position in LAGE setzen
-function clickCell(r, s){
-  const d = S.ringe[r][s];
-  S.x = d.r; S.y = d.s; S.z = d.wert; S.w++;
-  // Alle anderen "aktiv" entfernen
-  S.ringe.forEach(row => row.forEach(x => x.aktiv = false));
-  d.aktiv = true;
-  $("curMove").textContent = `R${d.r}·S${d.s}`;
-  renderRinge();
-  renderLage();
-  log(`◈ R${d.r}·S${d.s} → x=${d.r} y=${d.s} z=${d.wert}`, "op");
-}
-
-// ═══════════════════════════════════════════════════════════════
-// MITTE VERTEILEN · ALLE 9 MITTEN
-// ═══════════════════════════════════════════════════════════════
-function teileAlleMitten(){
-  // Jede 9er-Gruppe (Ring) hat eine "Mitte" (Slot 5) — die teilt an die 8 anderen
-  // Auch die Gesamtmitte (41) teilt an alle
-  let totalGeteilt = 0;
-  S.ringe.forEach((row, r) => {
-    // Mitte des Rings = Slot 5 (index 4)
-    row.forEach((cell, s) => {
-      if(s === 4){  // Slot 5 = Mitte
-        cell.gemittet = true;
-        // teilt an alle anderen in diesem Ring
-        row.forEach((c, i) => {
-          if(i !== 4){ c.gemittet = true; totalGeteilt++; }
-        });
-      }
-    });
-  });
-  // Gesamtmitte
-  S.ringe[S.kernRing-1][S.kernSlot-1].gemittet = true;
-  renderRinge();
-  log(`◈ alle 9 mitten teilen → ${totalGeteilt} zellen gemittet`, "pu");
-  $("netStat").textContent = "GETEILT";
-  $("shareN").textContent = totalGeteilt + 9;
-  $("shareSum").textContent = "=" + (totalGeteilt + 9);
-}
-
-function resetAlles(){
-  S.ringe.forEach(row => row.forEach(c => {
-    c.gemittet = false; c.aktiv = false;
-  }));
-  S.x=S.y=S.z=S.w=0;
-  S.tier = 0;
-  S.seqIdx = 0;
-  S.q = "Q1";
-  S.pol = "NC";
-  renderRinge();
-  renderLage();
-  renderSeq();
-  renderQ();
-  $("netStat").textContent = "KALT";
-  $("shareN").textContent = "81";
-  $("shareSum").textContent = "=81";
-  log("↺ reset · 9 ringe · 81 zellen · mitte 41", "w");
-}
-
-// ═══════════════════════════════════════════════════════════════
-// LAGE · RENDER
-// ═══════════════════════════════════════════════════════════════
-function renderLage(){
-  $("lx").textContent = S.x.toFixed(0);
-  $("ly").textContent = S.y.toFixed(0);
-  $("lz").textContent = S.z.toFixed(0);
-  $("lw").textContent = S.w.toFixed(0);
-  $("cx").textContent = S.x.toFixed(0);
-  $("cy").textContent = S.y.toFixed(0);
-  $("cz").textContent = S.z.toFixed(0);
-  $("cw").textContent = S.w.toFixed(0);
-  const tierLab = ["X³","X²","X","1"][S.tier];
-  $("lmodi").textContent = tierLab;
-  $("lq").textContent = S.q;
-  $("lpol").textContent = S.pol;
-
-  // 4D-Dims
-  $("d1").textContent = `iki–ÄH ${S.x}`;
-  $("d2").textContent = `AH·HA ${S.y}`;
-  $("d3").textContent = `${S.x}·uc·${S.z}`;
-  $("d4").textContent = `Z+Z+W+U ${S.w}`;
-
-  // Eich-Anzeige
-  $("eichV").textContent = S.eich.toFixed(3);
-  $("win2V").textContent = S.win2.toFixed(3);
-  $("win3V").textContent = S.win3.toFixed(3);
-}
-
-// ═══════════════════════════════════════════════════════════════
-// WÜRFEL BUTTONS
-// ═══════════════════════════════════════════════════════════════
-document.querySelectorAll("[data-fx]").forEach(btn => {
-  btn.onclick = () => {
-    const fx = btn.dataset.fx;
-    const f = WURFEL_FX[fx];
-    if(!f) return;
-    const before = {...S};
-    Object.assign(S, f(S));
-    const note = f(S).note || fx;
-    $("curMove").textContent = note;
-    renderLage();
-    // Würfel-Button highlight
-    document.querySelectorAll("[data-fx]").forEach(b => b.classList.remove("hot"));
-    btn.classList.add("hot");
-    log(`◈ ${note} · x=${S.x.toFixed(0)} z=${S.z.toFixed(0)}`, "op");
-  };
-});
-
-// ═══════════════════════════════════════════════════════════════
-// Q1–Q4
-// ═══════════════════════════════════════════════════════════════
-document.querySelectorAll(".q").forEach(q => {
-  q.onclick = () => {
-    S.q = q.dataset.q;
-    renderQ();
-    renderLage();
-    log(`◈ ${S.q} aktiv`, "op");
-  };
-});
-
-function renderQ(){
-  document.querySelectorAll(".q").forEach(el => {
-    el.classList.toggle("on", el.dataset.q === S.q);
-  });
-}
-
-// ═══════════════════════════════════════════════════════════════
-// POLARITÄT
-// ═══════════════════════════════════════════════════════════════
-document.querySelectorAll(".pol").forEach(p => {
-  p.onclick = () => {
-    S.pol = p.dataset.p;
-    renderLage();
-    log(`◈ polarität → ${S.pol}`, "op");
-  };
-});
-
-// ═══════════════════════════════════════════════════════════════
-// SEQUENZ
-// ═══════════════════════════════════════════════════════════════
-function renderSeq(){
-  const el = $("seq");
-  el.innerHTML = "";
-  SEQ.forEach((s, i) => {
-    const span = document.createElement("span");
-    span.textContent = s.sym;
-    span.style.cssText = `border:1px solid ${i===S.seqIdx?"#6cf":"#0f05"};padding:3px 7px;border-radius:3px;color:${i===S.seqIdx?"#6cf":"#0f07"}`;
-    el.appendChild(span);
-  });
-  $("seqStep").textContent = (S.seqIdx+1) + "/9";
-}
-
-$("btnStep").onclick = () => {
-  const s = SEQ[S.seqIdx];
-  Object.assign(S, s.fx(S));
-  S.seqIdx = (S.seqIdx + 1) % SEQ.length;
-  renderSeq();
-  renderLage();
-  log(`◈ seq → ${s.sym} ${s.name}`, "op");
-};
-
-// ═══════════════════════════════════════════════════════════════
-// BUTTONS
-// ═══════════════════════════════════════════════════════════════
-$("btnMitteAlle").onclick = teileAlleMitten;
-$("btnReset").onclick = resetAlles;
-
-// ═══════════════════════════════════════════════════════════════
-// 3D CANVAS · LAGE-VISUALISIERUNG
-// ═══════════════════════════════════════════════════════════════
-function initStage(){
-  const cv = $("stage");
-  const ctx = cv.getContext("2d");
-
-  function resize(){
-    const r = cv.getBoundingClientRect();
-    const dpr = Math.min(window.devicePixelRatio||1, 2);
-    cv.width = r.width * dpr;
-    cv.height = r.height * dpr;
-    ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
-  }
-  resize();
-  window.addEventListener("resize", resize);
-
-  let ax = 0.3, ay = 0.4;
-
-  function rotX(p,a){const c=Math.cos(a),s=Math.sin(a);return [p[0], p[1]*c-p[2]*s, p[1]*s+p[2]*c];}
-  function rotY(p,a){const c=Math.cos(a),s=Math.sin(a);return [p[0]*c+p[2]*s, p[1], -p[0]*s+p[2]*c];}
-  function proj(p, w, h, scale){
-    const fov = 320;
-    const s = fov / (fov + p[2]*2.5);
-    return [w/2 + p[0]*s*scale, h/2 + p[1]*s*scale];
+    if (d.x - d.r < 0) { d.x = d.r; d.vx *= -WALL_BOUNCE; }
+    if (d.x + d.r > W) { d.x = W - d.r; d.vx *= -WALL_BOUNCE; }
+    if (d.y - d.r < 0) { d.y = d.r; d.vy *= -WALL_BOUNCE; }
+    if (d.y + d.r > H) { d.y = H - d.r; d.vy *= -WALL_BOUNCE; }
   }
 
-  function draw(){
-    const r = cv.getBoundingClientRect();
-    const w = r.width, h = r.height;
-    const scale = Math.min(w, h) * 0.32;
+  // ─── Verschmelzung / Abstoßung (Masse- & Impulserhaltung) ────
+  const toRemove = new Set();
+  let mergedThisFrame = 0;
+  for (let i = 0; i < drops.length; i++) {
+    if (toRemove.has(i)) continue;
+    for (let j = i + 1; j < drops.length; j++) {
+      if (toRemove.has(j)) continue;
+      const a = drops[i], b = drops[j];
+      const dx = b.x - a.x, dy = b.y - a.y;
+      const dist = Math.hypot(dx, dy) || 0.001;
+      const sumR = a.r + b.r;
 
-    ctx.fillStyle = "#000";
-    ctx.fillRect(0, 0, w, h);
-
-    ax += 0.002;
-    ay += 0.003;
-
-    // LAGE-basierte Verschiebung
-    const lx = S.x * 0.05;
-    const ly = S.y * 0.05;
-    const lz = S.z * 0.001;
-
-    // 9 Ringe — jede als Kreis mit 9 Punkten
-    for(let ri = 0; ri < 9; ri++){
-      const ringR = 0.2 + ri * 0.09;
-      const tRing = (S.t * 0.001) + ri * 0.1;
-      for(let si = 0; si < 9; si++){
-        const a = (si / 9) * Math.PI * 2 + tRing;
-        let p = [Math.cos(a) * ringR, Math.sin(a) * ringR, (ri - 4) * 0.08];
-        p = rotX(p, ax);
-        p = rotY(p, ay);
-        p[0] += lx;
-        p[1] += ly;
-        p[2] += lz;
-        const s = proj(p, w, h, scale);
-
-        // Position
-        const d = S.ringe[ri][si];
-        let col = "rgba(0,255,136,0.25)";
-        let rad = 2;
-        if(d.aktiv){ col = "#0f0"; rad = 4; }
-        else if(d.gemittet){ col = "#ff66ff"; rad = 3; }
-        else if(d.pos === S.kern){ col = "#ff66ff"; rad = 3.5; }
-        else if(ri === S.kernRing || si === S.kernSlot){ col = "rgba(108,204,255,0.6)"; rad = 2.5; }
-
-        ctx.beginPath();
-        ctx.arc(s[0], s[1], rad, 0, Math.PI*2);
-        ctx.fillStyle = col;
-        ctx.fill();
-
-        if(d.aktiv || d.pos === S.kern){
-          ctx.beginPath();
-          ctx.arc(s[0], s[1], rad*3, 0, Math.PI*2);
-          const g = ctx.createRadialGradient(s[0],s[1],0,s[0],s[1],rad*3);
-          g.addColorStop(0, col);
-          g.addColorStop(1, "rgba(0,0,0,0)");
-          ctx.fillStyle = g;
-          ctx.fill();
-        }
+      if (dist < sumR * MERGE_FACTOR) {
+        const ma = a.r * a.r, mb = b.r * b.r, total = ma + mb;
+        a.x = (a.x * ma + b.x * mb) / total;
+        a.y = (a.y * ma + b.y * mb) / total;
+        a.vx = (a.vx * ma + b.vx * mb) / total;
+        a.vy = (a.vy * ma + b.vy * mb) / total;
+        a.r = Math.sqrt(total);
+        toRemove.add(j);
+        mergedThisFrame++;
+      } else if (dist < sumR) {
+        const overlap = sumR - dist;
+        const nx = dx / dist, ny = dy / dist;
+        const push = overlap * REPEL_FACTOR;
+        a.vx -= nx * push; a.vy -= ny * push;
+        b.vx += nx * push; b.vy += ny * push;
       }
     }
-
-    // Achsen-Kreuz in der Mitte
-    ctx.strokeStyle = "rgba(108,204,255,0.15)";
-    ctx.lineWidth = 1;
-    ctx.beginPath();
-    ctx.moveTo(w/2, 0); ctx.lineTo(w/2, h);
-    ctx.moveTo(0, h/2); ctx.lineTo(w, h/2);
-    ctx.stroke();
-
-    // Achsen-Beschriftung
-    ctx.font = "10px monospace";
-    ctx.fillStyle = "#6cf";
-    ctx.textAlign = "center";
-    ctx.fillText("HÄ", w/2, 12);
-    ctx.fillText("ÄH", w/2, h-4);
-    ctx.textAlign = "left";
-    ctx.fillText("AH", 4, h/2);
-    ctx.textAlign = "right";
-    ctx.fillText("HA", w-4, h/2);
-
-    // Q-Anzeige
-    ctx.font = "9px monospace";
-    ctx.fillStyle = "#0f05";
-    ctx.textAlign = "left";
-    ctx.fillText(`Q1·QI  Q2·ORBIT  Q3·OP  Q4·EVO`, 6, h-18);
-    ctx.fillStyle = "#6cf";
-    ctx.fillText(`aktiv: ${S.q} · pol: ${S.pol} · X: ${["X³","X²","X","1"][S.tier]}`, 6, h-6);
-
-    S.t++;
-    requestAnimationFrame(draw);
   }
-  draw();
+  if (toRemove.size) {
+    drops = drops.filter((_, idx) => !toRemove.has(idx));
+    mergeCount += mergedThisFrame;
+    log(`🔗 ${mergedThisFrame} Verschmelzung(en) · Masse bleibt erhalten`, 'ok');
+  }
 }
 
-// ═══════════════════════════════════════════════════════════════
-// INIT
-// ═══════════════════════════════════════════════════════════════
-window.addEventListener("load", () => {
-  renderRinge();
-  renderLage();
-  renderSeq();
-  renderQ();
-  initStage();
-  log("◈ nanowürfel aktiv · X³→X²→X→1", "ok");
-  log("◈ 9 ringe · 81 zellen · mitte 41", "pu");
-  log("◈ klick zellen oder nutze buttons", "w");
+// ─── SPLIT ──────────────────────────────────────────────────────
+function splitDrop(idx) {
+  const d = drops[idx];
+  if (!d || d.r < MIN_SPLIT_R || drops.length >= MAX_DROPS) return false;
+  const newR = d.r / Math.sqrt(2);
+  const angle = Math.random() * Math.PI * 2;
+  const speed = 1.2 + Math.random() * 1.2;
+  const d1 = new Drop(d.x - Math.cos(angle) * newR * 0.5, d.y - Math.sin(angle) * newR * 0.5, newR,
+                       d.vx - Math.cos(angle) * speed, d.vy - Math.sin(angle) * speed);
+  const d2 = new Drop(d.x + Math.cos(angle) * newR * 0.5, d.y + Math.sin(angle) * newR * 0.5, newR,
+                       d.vx + Math.cos(angle) * speed, d.vy + Math.sin(angle) * speed);
+  drops.splice(idx, 1, d1, d2);
+  splitCount++;
+  return true;
+}
+
+function findDropAt(x, y) {
+  for (let i = drops.length - 1; i >= 0; i--) {
+    if (Math.hypot(drops[i].x - x, drops[i].y - y) <= drops[i].r) return i;
+  }
+  return -1;
+}
+
+// ─── RENDER ─────────────────────────────────────────────────────
+function render() {
+  gooCtx.fillStyle = '#05070c';
+  gooCtx.fillRect(0, 0, W, H);
+
+  for (const d of drops) {
+    const grad = gooCtx.createRadialGradient(d.x, d.y, 0, d.x, d.y, d.r);
+    grad.addColorStop(0, '#eaf4fb');
+    grad.addColorStop(0.5, '#a8c4d8');
+    grad.addColorStop(1, '#4a6a7a');
+    gooCtx.fillStyle = grad;
+    gooCtx.beginPath();
+    gooCtx.arc(d.x, d.y, d.r, 0, Math.PI * 2);
+    gooCtx.fill();
+  }
+
+  hiCtx.clearRect(0, 0, W, H);
+
+  if (ds9On) {
+    hiCtx.fillStyle = 'rgba(255, 215, 0, 0.05)';
+    hiCtx.fillRect(0, 0, W, H);
+  }
+
+  for (const d of drops) {
+    hiCtx.beginPath();
+    const hx = d.x - d.r * 0.35, hy = d.y - d.r * 0.35, hr = d.r * 0.28;
+    const hg = hiCtx.createRadialGradient(hx, hy, 0, hx, hy, hr);
+    hg.addColorStop(0, ds9On ? 'rgba(255,240,190,0.85)' : 'rgba(255,255,255,0.75)');
+    hg.addColorStop(1, 'rgba(255,255,255,0)');
+    hiCtx.fillStyle = hg;
+    hiCtx.arc(hx, hy, hr, 0, Math.PI * 2);
+    hiCtx.fill();
+  }
+}
+
+function updateStats() {
+  document.getElementById('countDisplay').textContent = drops.length;
+  const mass = drops.reduce((s, d) => s + d.r * d.r, 0);
+  document.getElementById('massDisplay').textContent = Math.round(mass);
+  document.getElementById('mergeDisplay').textContent = mergeCount;
+  document.getElementById('splitDisplay').textContent = splitCount;
+}
+
+// ─── LOOP ───────────────────────────────────────────────────────
+function loop() {
+  step();
+  render();
+  updateStats();
+  requestAnimationFrame(loop);
+}
+
+// ─── INTERAKTION ────────────────────────────────────────────────
+wrap.addEventListener('mousemove', e => {
+  const rect = wrap.getBoundingClientRect();
+  mouse.x = e.clientX - rect.left;
+  mouse.y = e.clientY - rect.top;
+  mouse.active = true;
+});
+wrap.addEventListener('mouseleave', () => { mouse.active = false; });
+wrap.addEventListener('touchmove', e => {
+  const rect = wrap.getBoundingClientRect();
+  const t = e.touches[0];
+  mouse.x = t.clientX - rect.left;
+  mouse.y = t.clientY - rect.top;
+  mouse.active = true;
+  e.preventDefault();
+}, { passive: false });
+
+wrap.addEventListener('click', e => {
+  const rect = wrap.getBoundingClientRect();
+  const x = e.clientX - rect.left, y = e.clientY - rect.top;
+  const idx = findDropAt(x, y);
+  if (idx >= 0) {
+    if (splitDrop(idx)) log('✂ Tropfen geteilt', 'flow');
+    else log('… Tropfen zu klein zum Teilen', 'flow');
+  } else {
+    spawnDrop(x, y, 10 + Math.random() * 10);
+    log('💧 neuer Tropfen', 'flow');
+  }
 });
 
-// Public API
-window.NANO = {
-  lage: () => ({x:S.x, y:S.y, z:S.z, w:S.w, tier:["X³","X²","X","1"][S.tier], q:S.q, pol:S.pol}),
-  setX: (v) => { S.x = v; renderLage(); },
-  setY: (v) => { S.y = v; renderLage(); },
-  setZ: (v) => { S.z = v; renderLage(); },
-  setW: (v) => { S.w = v; renderLage(); },
-  mitte: teileAlleMitten,
-  reset: resetAlles,
-  ringe: () => S.ringe,
-  kern: () => ({ring: S.kernRing, slot: S.kernSlot, pos: S.kern}),
-  eich: () => ({eich: S.eich, win2: S.win2, win3: S.win3}),
-  seq: () => SEQ.map(s => s.sym),
-  step: () => $("btnStep").click()
-};
+// ─── BUTTONS ────────────────────────────────────────────────────
+document.getElementById('btnMagnet').addEventListener('click', () => {
+  magnetOn = !magnetOn;
+  document.getElementById('btnMagnet').classList.toggle('active', magnetOn);
+  document.getElementById('dotMagnet').className = 'dot' + (magnetOn ? ' on' : '');
+  log(magnetOn ? '🧲 MAGNET aktiv · Tropfen folgen dem Cursor' : '🧲 MAGNET aus · Schwerkraft übernimmt', 'magnet');
+});
 
-console.log("◈ NANOWÜRFEL · ALL698869ALL");
-console.log("→ NANO.lage() · NANO.mitte() · NANO.reset() · NANO.step()");
+document.getElementById('btnAdd').addEventListener('click', () => {
+  spawnDrop(W / 2 + (Math.random() - 0.5) * 60, 20, 12 + Math.random() * 16);
+  log('💧 Tropfen hinzugefügt', 'flow');
+});
+
+document.getElementById('btnSplit').addEventListener('click', () => {
+  if (!drops.length) return;
+  let maxIdx = 0;
+  for (let i = 1; i < drops.length; i++) if (drops[i].r > drops[maxIdx].r) maxIdx = i;
+  if (splitDrop(maxIdx)) log('✂ größter Tropfen geteilt', 'flow');
+  else log('… kein Tropfen groß genug', 'flow');
+});
+
+document.getElementById('btnQuake').addEventListener('click', () => {
+  drops.forEach(d => {
+    d.vx += (Math.random() - 0.5) * 8;
+    d.vy += (Math.random() - 0.5) * 8 - 2;
+  });
+  log('⚡ QUAKE · alle Tropfen erschüttert', 'whirl');
+});
+
+document.getElementById('btnDs9').addEventListener('click', () => {
+  ds9On = !ds9On;
+  document.getElementById('btnDs9').classList.toggle('active', ds9On);
+  document.getElementById('dotDs9').className = 'dot' + (ds9On ? ' gold' : '');
+  log(ds9On ? '★ DS9 · goldener Schimmer aktiv' : '★ DS9 · inaktiv', 'ds9');
+});
+
+document.getElementById('btnReset').addEventListener('click', () => {
+  initDrops();
+  log('⟲ RESET · Quecksilber neu formatiert', 'flow');
+});
+
+// ─── TASTATUR ───────────────────────────────────────────────────
+document.addEventListener('keydown', (e) => {
+  if (e.key === ' ') { e.preventDefault(); document.getElementById('btnAdd').click(); }
+  if (e.key === 'm' || e.key === 'M') document.getElementById('btnMagnet').click();
+  if (e.key === 's' || e.key === 'S') document.getElementById('btnSplit').click();
+  if (e.key === 'q' || e.key === 'Q') document.getElementById('btnQuake').click();
+  if (e.key === 'd' || e.key === 'D') document.getElementById('btnDs9').click();
+  if (e.key === 'x' || e.key === 'X') document.getElementById('btnReset').click();
+});
+
+// ─── LOG ────────────────────────────────────────────────────────
+function log(msg, type = 'ok') {
+  const el = document.getElementById('log');
+  const time = new Date().toLocaleTimeString();
+  const cls = ['ok', 'flow', 'whirl', 'ds9', 'magnet'].includes(type) ? type : 'ok';
+  el.innerHTML += `<div>[${time}] <span class="${cls}">${msg}</span></div>`;
+  el.scrollTop = el.scrollHeight;
+  while (el.children.length > 20) el.removeChild(el.firstChild);
+}
+
+// ─── INIT ───────────────────────────────────────────────────────
+resize();
+initDrops();
+log('🧿 Metaball-Engine gestartet · 10 Tropfen fallen', 'ds9');
+log('⌨️  space=Tropfen  m=Magnet  s=Split  q=Quake  d=DS9  x=Reset', 'flow');
+loop();
 </script>
 </body>
 </html>
