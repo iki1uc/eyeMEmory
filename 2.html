@@ -2,782 +2,504 @@
 <html lang="de">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width,initial-scale=1">
-<title>NANOWÜRFEL · 9→81→9 · ALL698869ALL</title>
+<title>IKI1UC · NAVI · ATOM-UHR · ORBIT · sli.open</title>
+
 <style>
-  *{margin:0;padding:0;box-sizing:border-box}
-  body{background:#000;color:#0f0;font-family:'Consolas',monospace;padding:16px;line-height:1.4}
-  ::-webkit-scrollbar{width:6px}::-webkit-scrollbar-thumb{background:#0f0}
-  h1{font-size:14px;letter-spacing:4px;color:#6cf;font-weight:400;margin-bottom:2px}
-  h1 small{display:block;font-size:8px;letter-spacing:3px;color:#0f05;margin-top:4px}
-  .layout{display:grid;grid-template-columns:340px 1fr 300px;gap:12px;margin-top:12px}
-  @media(max-width:1100px){.layout{grid-template-columns:1fr 1fr}.layout>:nth-child(3){grid-column:1/-1}}
-  @media(max-width:640px){.layout{grid-template-columns:1fr}}
-  .panel{background:#0a0a0a;border:1px solid #0f03;padding:12px;border-radius:4px;margin-bottom:12px}
-  .panel h2{font-size:9px;letter-spacing:3px;color:#6cf;font-weight:400;text-transform:uppercase;
-    border-bottom:1px solid #0f03;padding-bottom:5px;margin-bottom:10px}
-  .panel h2 span{float:right;color:#0f05}
+    /* ===== BASIS ===== */
+    body { background:#0b0b0b; color:#e0e0e0; font-family:Consolas; padding:15px; }
+    .container { max-width:1100px; margin:0 auto; }
+    h1 { color:#6cf; font-size:1.4rem; }
+    .flex { display:flex; gap:10px; flex-wrap:wrap; align-items:center; margin:6px 0; }
+    .grid-2 { display:grid; grid-template-columns: 2fr 1fr; gap:15px; }
+    @media (max-width:800px) { .grid-2 { grid-template-columns:1fr; } }
 
-  /* ─── NanoWürfel X³→X²→X→1 ─── */
-  .wurfel{display:flex;flex-direction:column;gap:6px}
-  .wurfel .row{display:flex;gap:6px;align-items:center}
-  .wurfel button{
-    flex:1;background:#000;border:1px solid #0f05;color:#0f0;
-    padding:8px 4px;font-family:inherit;font-size:11px;cursor:pointer;
-    border-radius:3px;transition:all .15s;
-  }
-  .wurfel button:hover{border-color:#6cf;color:#6cf}
-  .wurfel button.hot{background:#0f0a;border-color:#6cf;color:#6cf}
-  .wurfel .arr{color:#0f04;font-size:12px;width:16px;text-align:center}
-  .wurfel .lab{font-size:8px;color:#0f05;letter-spacing:2px;text-transform:uppercase;margin-bottom:2px}
+    /* ===== CANVAS ===== */
+    #orbitCanvas { background:#000; border:1px solid #333; display:block; width:100%; height:auto; aspect-ratio:700/300; }
 
-  /* ─── 9 Ringe → 81 ─── */
-  .ringe{
-    display:grid;grid-template-columns:repeat(9,1fr);gap:3px;
-    margin-bottom:10px;
-  }
-  .ring-col{
-    display:flex;flex-direction:column;gap:3px;
-  }
-  .ring-lab{
-    font-size:7px;text-align:center;color:#0f06;letter-spacing:1px;
-    padding:1px 0;border-bottom:1px solid #0f03;
-  }
-  .cell{
-    aspect-ratio:1;border:1px solid #0f05;border-radius:2px;
-    background:#000;display:flex;align-items:center;justify-content:center;
-    font-size:8px;color:#0f07;cursor:pointer;transition:all .12s;
-    position:relative;
-  }
-  .cell:hover{border-color:#6cf;color:#6cf}
-  .cell.mitte{background:#0f02;border-color:#6cf6;color:#6cf}
-  .cell.aktiv{background:#0f0;color:#000;border-color:#0f0;box-shadow:0 0 8px #0f0}
-  .cell.gemittet{background:#ff66ff22;border-color:#ff66ff55;color:#ff66ff}
-  .cell.kern{background:#ff66ff;color:#000;border-color:#ff66ff;box-shadow:0 0 12px #ff66ff}
+    /* ===== NAVI-PANEL ===== */
+    .navi-panel { background:#111; border:1px solid #2a3a4a; border-radius:8px; padding:10px; }
+    .navi-panel h2 { color:#8ab0c0; font-size:14px; margin:0 0 8px 0; border-bottom:1px solid #2a3a4a; padding-bottom:4px; }
+    .navi-row { display:flex; justify-content:space-between; font-size:13px; padding:2px 0; }
+    .navi-row .label { color:#5a7a8a; }
+    .navi-row .value { color:#8cf0d0; font-weight:bold; }
+    .navi-row .value.orange { color:#f0d080; }
+    .navi-row .value.pink { color:#ff8a9b; }
 
-  /* ─── Mitte-Verteiler ─── */
-  .verteiler{
-    display:grid;grid-template-columns:auto 1fr auto;gap:10px;align-items:center;
-    background:#000;border:1px solid #0f05;padding:10px;border-radius:4px;
-  }
-  .verteiler .kern-num{
-    font-size:20px;color:#ff66ff;text-shadow:0 0 8px #ff66ff;
-    min-width:44px;text-align:center;
-  }
-  .verteiler .ring-info{font-size:9px;color:#0f08;line-height:1.7}
-  .verteiler .ring-info b{color:#6cf;font-weight:400}
-  .verteiler .share{
-    font-size:10px;color:#0f0;text-align:right;
-  }
+    /* ===== ATOM-UHR ===== */
+    .atom-clock { background:#0a1a1a; border:1px solid #1a3a3a; border-radius:6px; padding:8px 12px; text-align:center; margin-top:6px; }
+    .atom-clock .time { font-size:28px; color:#6cf; letter-spacing:3px; font-weight:bold; }
+    .atom-clock .sub { font-size:12px; color:#5a7a8a; }
 
-  /* ─── Q1–Q4 ─── */
-  .qgrid{display:grid;grid-template-columns:1fr 1fr;gap:6px}
-  .q{background:#000;border:1px solid #0f05;padding:8px;border-radius:4px;cursor:pointer;transition:all .15s}
-  .q:hover{border-color:#6cf}
-  .q .qn{font-size:9px;color:#0f05;letter-spacing:2px}
-  .q .qt{font-size:11px;color:#6cf;margin-top:2px}
-  .q .qv{font-size:8px;color:#0f07;margin-top:4px}
-  .q.on{background:#6cf15;border-color:#6cf;box-shadow:0 0 14px #6cf3}
+    /* ===== WEGPUNKTE ===== */
+    .waypoint-list { display:flex; flex-wrap:wrap; gap:4px; margin-top:6px; }
+    .waypoint-item { background:#1a1a2a; padding:2px 8px; border-radius:12px; font-size:12px; border:1px solid #2a3a4a; }
+    .waypoint-item.active { border-color:#6cf; background:#1a2a3a; color:#6cf; }
 
-  /* ─── Polaritäten ─── */
-  .polar{
-    display:grid;grid-template-columns:repeat(3,1fr);gap:4px;
-    text-align:center;
-  }
-  .pol{
-    background:#000;border:1px solid #0f05;padding:6px 4px;border-radius:3px;
-    font-size:11px;color:#0f0;cursor:pointer;
-  }
-  .pol:hover{border-color:#6cf;color:#6cf}
-  .pol .sub{display:block;font-size:7px;color:#0f05;letter-spacing:1px;margin-top:3px}
-  .pol.nc{grid-column:1/-1;border-color:#6cf5;color:#6cf;font-size:13px}
+    /* ===== BUTTONS / BADGES ===== */
+    .btn { padding:5px 14px; background:#222; color:#fff; border:1px solid #555; cursor:pointer; font-family:Consolas; font-size:13px; }
+    .btn:hover { border-color:#6cf; }
+    .btn.primary { border-color:#6cf; color:#6cf; }
+    .btn.primary:hover { background:#1a2a3a; }
+    .btn.sli { border-color:#ffd700; color:#ffd700; }
+    .btn.sli:hover { background:#2a2a0a; }
+    .badge { display:inline-block; padding:2px 12px; border-radius:12px; font-size:11px; border:1px solid #2a3a4a; }
+    .badge.aktiv { border-color:#8cf0d0; color:#8cf0d0; }
+    .badge.offen { border-color:#ffd700; color:#ffd700; background:#1a1a0a; }
+    .badge.geschlossen { border-color:#888; color:#888; }
 
-  /* ─── 4D Anzeige ─── */
-  .vierd{display:grid;grid-template-columns:1fr 1fr;gap:6px;font-size:10px}
-  .vierd .dim{
-    background:#000;border:1px solid #0f05;padding:8px;border-radius:3px;
-  }
-  .vierd .dim .k{color:#0f05;font-size:8px;letter-spacing:2px}
-  .vierd .dim .v{color:#0f0;font-size:14px;margin-top:3px}
-  .vierd .dim.hot{border-color:#6cf5}
-  .vierd .dim.hot .v{color:#6cf}
-
-  /* ─── 3D Canvas ─── */
-  .stage{
-    background:#000;border:1px solid #0f05;border-radius:4px;
-    display:block;width:100%;aspect-ratio:1/1;max-height:420px;
-  }
-  .achslab{display:flex;justify-content:space-between;font-size:8px;color:#0f06;
-    letter-spacing:1px;margin-top:6px}
-  .achslab b{color:#6cf;font-weight:400}
-
-  /* ─── Log ─── */
-  .log{
-    background:#000;border:1px solid #0f05;padding:8px;border-radius:4px;
-    height:130px;overflow-y:auto;font-size:9px;line-height:1.7;
-  }
-  .log .t{color:#0f04}
-  .log .op{color:#6cf}
-  .log .w{color:#ffd700}
-  .log .ok{color:#0f0}
-  .log .pu{color:#ff66ff}
-
-  /* ─── Win / Eich ─── */
-  .eich{
-    display:flex;gap:6px;font-size:10px;
-  }
-  .eich .item{
-    flex:1;text-align:center;background:#000;border:1px solid #0f05;
-    padding:6px 2px;border-radius:3px;
-  }
-  .eich .item .k{font-size:8px;color:#0f05;letter-spacing:1px;display:block}
-  .eich .item .v{color:#6cf;font-size:12px;margin-top:2px}
-  .eich .item .v.win{color:#ff66ff}
-
-  footer{
-    margin-top:14px;padding-top:10px;border-top:1px solid #0f04;
-    display:flex;justify-content:space-between;flex-wrap:wrap;
-    font-size:8px;color:#0f05;letter-spacing:3px;
-  }
-  .siegel{color:#ff66ff;letter-spacing:6px;font-size:9px}
+    /* ===== LOG ===== */
+    #log { background:#111; padding:10px; height:100px; overflow:auto; font-size:12px; margin-top:10px; border:1px solid #2a3a4a; border-radius:4px; }
 </style>
 </head>
 <body>
 
-<h1>
-  ◈ NANOWÜRFEL · X³→X²→X→1
-  <small>9→uni→81→mitte→9 · Q1-Q4 · 4D · ALL698869ALL</small>
-</h1>
+<div class="container">
 
-<div class="layout">
-
-  <!-- ═══ LINKS ═══ -->
-  <div>
-
-    <div class="panel">
-      <h2>NANO · WÜRFEL <span>operator</span></h2>
-      <div class="wurfel">
-        <div class="lab">zerfall</div>
-        <div class="row">
-          <button data-fx="X3X2">X³</button>
-          <span class="arr">→</span>
-          <button data-fx="X2X">X²</button>
-          <span class="arr">→</span>
-          <button data-fx="X1">X</button>
-          <span class="arr">→</span>
-          <button data-fx="X0">1</button>
+    <!-- HEADER -->
+    <div class="flex" style="justify-content:space-between;">
+        <h1>🚢 IKI1UC · NAVI · ATOM‑UHR · ORBIT <span style="color:#5a7a8a;font-size:14px;font-weight:300;">v3 — mit sli.open</span></h1>
+        <div>
+            <span class="badge" id="sliStatusBadge">🔒 geschlossen</span>
+            <button class="btn sli" id="btnSliOpen">🔓 sli.open</button>
         </div>
-        <div class="lab" style="margin-top:6px">aufbau</div>
-        <div class="row">
-          <button data-fx="X0X">1</button>
-          <span class="arr">→</span>
-          <button data-fx="XX2">X</button>
-          <span class="arr">→</span>
-          <button data-fx="X2X3">X²</button>
-          <span class="arr">→</span>
-          <button data-fx="X3X2" data-rev="1">X³</button>
+    </div>
+
+    <!-- CANVAS + NAVI-PANEL -->
+    <div class="grid-2">
+        <!-- Linke Spalte: Canvas -->
+        <div>
+            <canvas id="orbitCanvas" width="700" height="300"></canvas>
+            <!-- Kurzstatus -->
+            <div class="flex" style="justify-content:space-between; font-size:12px; color:#5a7a8a; margin-top:4px;">
+                <span>🌀 Orbit: <span id="orbitStatus" class="badge aktiv">AKTIV</span></span>
+                <span>👑 Rolle: <span id="roleStatus" class="badge leader">LEADER</span></span>
+                <span>📡 Sync: <span id="syncStatus" class="ok">● verbunden</span></span>
+            </div>
         </div>
-        <div class="lab" style="margin-top:6px">sprung</div>
-        <div class="row">
-          <button data-fx="JUMP">X² → 1 → X³ → X</button>
+
+        <!-- Rechte Spalte: Navigation + Atomuhr -->
+        <div class="navi-panel">
+            <h2>🧭 NAVIGATION · EIGENSTATION</h2>
+            <div class="navi-row"><span class="label">Position (Orbit‑Index)</span><span class="value" id="naviIndex">0</span></div>
+            <div class="navi-row"><span class="label">Symbol</span><span class="value orange" id="naviSymbol">◉</span></div>
+            <div class="navi-row"><span class="label">Kurs (Heading)</span><span class="value" id="naviHeading">000°</span></div>
+            <div class="navi-row"><span class="label">Geschw. (Knoten)</span><span class="value pink" id="naviSpeed">0.0</span></div>
+            <div class="navi-row"><span class="label">Axiom‑Modus</span><span class="value" id="naviMode">IQQ</span></div>
+
+            <!-- ATOM-UHR -->
+            <div class="atom-clock">
+                <div class="time" id="atomTime">00:00:00.000</div>
+                <div class="sub">⚛️ Atomuhr · Takt <span id="atomTick">0</span> · Δt <span id="atomDelta">0.0</span>ms</div>
+            </div>
+
+            <!-- WEGPUNKTE (die Symbole des Pfades) -->
+            <div style="margin-top:8px;">
+                <div style="font-size:11px; color:#5a7a8a;">📍 Wegpunkte (Orbit‑Pfad):</div>
+                <div class="waypoint-list" id="waypointList"></div>
+            </div>
+
+            <!-- Steuerung -->
+            <div class="flex" style="margin-top:8px;">
+                <button class="btn" id="btnPlay">⏸ Pause</button>
+                <button class="btn" id="btnStep">▶ Schritt</button>
+                <button class="btn" id="btnReset">⟲ Reset</button>
+                <span class="label">Speed</span>
+                <input type="range" id="speedSlider" min="1" max="10" value="3" style="width:80px;">
+                <span class="label" id="speedLabel">3×</span>
+            </div>
         </div>
-      </div>
     </div>
 
-    <div class="panel">
-      <h2>MITTEN · VERTEILER <span id="mitteRing">ring 5</span></h2>
-      <div class="verteiler">
-        <div class="kern-num" id="kern">41</div>
-        <div class="ring-info">
-          Position <b id="kernPos">5·5</b><br>
-          Ring <b id="kernR">5</b> · Slot <b id="kernS">5</b><br>
-          teilt an <b id="shareN">81</b> Zellen
-        </div>
-        <div class="share">
-          <div id="shareSum">=81</div>
-          <div style="font-size:8px;color:#0f05">summe</div>
-        </div>
-      </div>
-      <div style="margin-top:8px;display:flex;gap:4px">
-        <button class="wurfel-button" id="btnMitteAlle" style="flex:1;background:#000;border:1px solid #ff66ff55;color:#ff66ff;padding:6px;font-family:inherit;font-size:9px;cursor:pointer;border-radius:3px">◈ ALLE 9 MITTEN TEILEN</button>
-        <button id="btnReset" style="flex:1;background:#000;border:1px solid #0f05;color:#0f0;padding:6px;font-family:inherit;font-size:9px;cursor:pointer;border-radius:3px">↺ RESET</button>
-      </div>
+    <!-- AXIOM-ANZEIGE (unterhalb) -->
+    <div class="flex" style="font-size:13px;color:#8ab0c0;gap:20px; margin-top:8px;">
+        <span>🌀 IQQ: <span id="axiomIQQ" style="color:#ffd700;">9 → 3 → 9 → 3</span></span>
+        <span>◎ OCTA: <span id="axiomOCTA" style="color:#6cf;">◉ ◆ △ ▣ ↺</span></span>
+        <span>📐 A81: <span id="axiomA81" style="color:#b388ff;">27 · 81 · 243 · 729</span></span>
     </div>
 
-    <div class="panel">
-      <h2>Q1–Q4 <span>quanten</span></h2>
-      <div class="qgrid">
-        <div class="q on" data-q="Q1">
-          <div class="qn">Q1</div>
-          <div class="qt">QI</div>
-          <div class="qv">zustand · N</div>
-        </div>
-        <div class="q" data-q="Q2">
-          <div class="qn">Q2</div>
-          <div class="qt">ORBIT</div>
-          <div class="qv">raum · O</div>
-        </div>
-        <div class="q" data-q="Q3">
-          <div class="qn">Q3</div>
-          <div class="qt">OPERATOR</div>
-          <div class="qv">winkel · S</div>
-        </div>
-        <div class="q" data-q="Q4">
-          <div class="qn">Q4</div>
-          <div class="qt">EVO</div>
-          <div class="qv">zeit · W</div>
-        </div>
-      </div>
-    </div>
-
-    <div class="panel">
-      <h2>POLARITÄT <span>AH HA ÄH HÄ</span></h2>
-      <div class="polar">
-        <div class="pol" data-p="HÄ">HÄ<span class="sub">oben</span></div>
-        <div class="pol" data-p="ÄH">ÄH<span class="sub">unten</span></div>
-        <div class="pol" data-p="AH">AH<span class="sub">links</span></div>
-        <div class="pol" data-p="HA">HA<span class="sub">rechts</span></div>
-        <div class="pol nc" data-p="NC">◉ NC ◉<span class="sub">zentrum</span></div>
-      </div>
-    </div>
-
-    <div class="panel">
-      <h2>EICH · WIN <span>0.777</span></h2>
-      <div class="eich">
-        <div class="item"><span class="k">EICH</span><div class="v" id="eichV">0.777</div></div>
-        <div class="item"><span class="k">WIN²</span><div class="v" id="win2V">0.604</div></div>
-        <div class="item"><span class="k">WIN³</span><div class="v win" id="win3V">0.470</div></div>
-      </div>
-    </div>
-
-  </div>
-
-  <!-- ═══ MITTE ═══ -->
-  <div>
-
-    <div class="panel">
-      <h2>◈ 9 RINGE · 81 ZELLEN <span id="netStat">KALT</span></h2>
-      <div class="ringe" id="ringe"></div>
-      <div class="achslab">
-        <span>ring 1 → 9</span>
-        <span>slot <b>1..9</b> je ring</span>
-        <span>mitte <b>5·5</b> = 41</span>
-      </div>
-    </div>
-
-    <div class="panel">
-      <h2>LAGE · 3D <span id="curMove">—</span></h2>
-      <canvas id="stage" class="stage"></canvas>
-      <div class="achslab">
-        <span>x: <b id="cx">0</b></span>
-        <span>y: <b id="cy">0</b></span>
-        <span>z: <b id="cz">0</b></span>
-        <span>w: <b id="cw">0</b></span>
-      </div>
-    </div>
-
-    <div class="panel">
-      <h2>4D · ZUSTAND <span>zeit · winkel · raum</span></h2>
-      <div class="vierd">
-        <div class="dim hot"><div class="k">1D · LINIE</div><div class="v" id="d1">iki – ÄH</div></div>
-        <div class="dim"><div class="k">2D · FLÄCHE</div><div class="v" id="d2">AH·HA·NC</div></div>
-        <div class="dim"><div class="k">3D · RAUM</div><div class="v" id="d3">1·uc·2/4/6</div></div>
-        <div class="dim"><div class="k">4D · MAXI</div><div class="v" id="d4">Z+Z+W+U</div></div>
-      </div>
-    </div>
-
-  </div>
-
-  <!-- ═══ RECHTS ═══ -->
-  <div>
-
-    <div class="panel">
-      <h2>LAGE · LIVE <span id="mode">IDLE</span></h2>
-      <div style="font-size:10px;background:#000;border:1px solid #0f05;padding:10px;border-radius:4px;line-height:1.8">
-        <div>X <span style="color:#0f05;display:inline-block;width:20px">→</span><b id="lx" style="color:#6cf">0</b> <span style="color:#0f04">HYPE</span></div>
-        <div>Y <span style="color:#0f05;display:inline-block;width:20px">→</span><b id="ly" style="color:#6cf">0</b> <span style="color:#0f04">CALC</span></div>
-        <div>Z <span style="color:#0f05;display:inline-block;width:20px">→</span><b id="lz" style="color:#6cf">0</b> <span style="color:#0f04">iki2li</span></div>
-        <div>W <span style="color:#0f05;display:inline-block;width:20px">→</span><b id="lw" style="color:#ff66ff">0</b> <span style="color:#0f04">zeit</span></div>
-        <div style="margin-top:6px;border-top:1px solid #0f04;padding-top:6px">
-          <span style="color:#0f05">modi</span> <b id="lmodi" style="color:#ff66ff">—</b>
-          <span style="color:#0f05;margin-left:8px">q</span> <b id="lq" style="color:#6cf">Q1</b>
-          <span style="color:#0f05;margin-left:8px">pol</span> <b id="lpol" style="color:#0f0">NC</b>
-        </div>
-      </div>
-    </div>
-
-    <div class="panel">
-      <h2>SEQUENZ <span id="seqStep">0/9</span></h2>
-      <div style="display:flex;gap:3px;flex-wrap:wrap;font-size:10px" id="seq">
-        <span style="border:1px solid #0f05;padding:3px 7px;border-radius:3px">◉</span>
-        <span style="border:1px solid #0f05;padding:3px 7px;border-radius:3px">3</span>
-        <span style="border:1px solid #0f05;padding:3px 7px;border-radius:3px">9</span>
-        <span style="border:1px solid #0f05;padding:3px 7px;border-radius:3px">◎</span>
-        <span style="border:1px solid #0f05;padding:3px 7px;border-radius:3px">81</span>
-        <span style="border:1px solid #0f05;padding:3px 7px;border-radius:3px">◆</span>
-        <span style="border:1px solid #0f05;padding:3px 7px;border-radius:3px">△</span>
-        <span style="border:1px solid #0f05;padding:3px 7px;border-radius:3px">27</span>
-        <span style="border:1px solid #0f05;padding:3px 7px;border-radius:3px">▣</span>
-        <span style="border:1px solid #0f05;padding:3px 7px;border-radius:3px">3↺</span>
-      </div>
-      <div style="margin-top:8px">
-        <button id="btnStep" style="width:100%;background:#000;border:1px solid #6cf5;color:#6cf;padding:7px;font-family:inherit;font-size:10px;cursor:pointer;border-radius:3px;letter-spacing:2px">▶ NÄCHSTER SCHRITT</button>
-      </div>
-    </div>
-
-    <div class="panel">
-      <h2>LOG <span id="logCount">0</span></h2>
-      <div class="log" id="log">
-        <div><span class="t">[init]</span> <span class="ok">nanowürfel bereit</span></div>
-        <div><span class="t">[init]</span> <span class="pu">9 ringe · 81 zellen · mitte 41</span></div>
-      </div>
-    </div>
-
-  </div>
+    <!-- LOG -->
+    <div id="log">System geladen · Orbit v3 · Navi + Atomuhr aktiv · sli.open geschlossen</div>
 
 </div>
 
-<footer>
-  <span>◈ NANOWÜRFEL · X³→X²→X→1 · 9→81→9 · Q1-Q4 · 4D · iki1uc</span>
-  <span class="siegel">ALL698869ALL</span>
-</footer>
-
 <script>
-// ═══════════════════════════════════════════════════════════════
-// NANOWÜRFEL · 9 Ringe à 9 · Mitte 41 · 4D
-// ═══════════════════════════════════════════════════════════════
+"use strict";
+/* ================================================================
+   IKI1UC · Orbit v3 + NAVI + ATOM-UHR + sli.open
+   ================================================================ */
 
-const $ = id => document.getElementById(id);
+  // ─── KONFIGURATION ──────────────────────────────────────────────
+  const ORBIT = [
+    "◉","↗","↘","3","9","↘","↗","◎","↗","↘","3","9","↘","↗",
+    "◎","↗","↘","81","◆","↘","↗","△","↗","↘","27","▣","↘","↗","3","↺"
+  ];
 
-// ─── ZUSTAND ─────────────────────────────────────────────────
-const S = {
-  // 9 Ringe à 9 Slots
-  ringe: Array.from({length:9}, (_, r) =>
-    Array.from({length:9}, (_, s) => ({
-      r: r+1, s: s+1,
-      pos: r*9 + s + 1,   // 1..81
-      wert: (r+1) * (s+1),
-      mitte: false,
-      gemittet: false,
-      aktiv: false
-    }))
-  ),
-  // Mitte (Position 41 = Ring 5, Slot 5)
-  kern: 41,
-  kernRing: 5,
-  kernSlot: 5,
-  // LAGE x/y/z/w
-  x: 0, y: 0, z: 0, w: 0,
-  // Würfel-Modus
-  X: 3,          // Basis
-  tier: 0,       // 0=X³, 1=X², 2=X, 3=1
-  // Q1-Q4
-  q: "Q1",
-  // Polarität
-  pol: "NC",
-  // Sequenz
-  seqIdx: 0,
-  // Eich
-  eich: 0.777,
-  win2: 0.777 * 0.777,
-  win3: 0.777 ** 3,
-  logN: 0,
-  // Zeit
-  t: 0
-};
+  const AXIOM_MAP = {
+    '3': 'IQQ', '9': 'IQQ',
+    '◎': 'OCTA', '◉': 'OCTA', '◆': 'OCTA', '△': 'OCTA', '▣': 'OCTA', '↺': 'OCTA',
+    '81': 'A81', '27': 'A81', '243': 'A81', '729': 'A81'
+  };
 
-// ─── SEQUENZ ─────────────────────────────────────────────────
-const SEQ = [
-  {sym:"◉", name:"start",    fx:s=>({...s, w:0})},
-  {sym:"3",  name:"wurzel-3", fx:s=>({...s, x:s.x+3, z:s.z-1})},
-  {sym:"9",  name:"wurzel-9", fx:s=>({...s, y:s.y+9, z:s.z-2})},
-  {sym:"◎",  name:"auge",     fx:s=>({...s, x:s.x*3, w:s.w+1})},
-  {sym:"81", name:"neun-neun",fx:s=>({...s, y:s.y*9, z:s.z+3})},
-  {sym:"◆",  name:"kern",     fx:s=>({...s, z:s.z*3, w:s.w+9})},
-  {sym:"△",  name:"streuung", fx:s=>({...s, x:s.x-9, y:s.y-3})},
-  {sym:"27", name:"drei-drei",fx:s=>({...s, z:s.z-27, w:s.w+27})},
-  {sym:"▣",  name:"siegel",   fx:s=>({...s, x:s.x+756})},
-  {sym:"3↺", name:"zyklus",   fx:s=>({...s, x:0, y:0, z:0, w:0})}
-];
+  // ─── STATE ──────────────────────────────────────────────────────
+  const state = {
+    index: 0,
+    running: true,
+    speed: 3,
+    mode: 'IQQ',
+    history: [],
+    isLeader: false,
+    accumulator: 0,
+    lastFrame: null,
+    sliOpen: false,          // 🔓 sli.open – wenn true, ist die Schleuse offen
+    atomTick: 0,
+    atomDelta: 0
+  };
 
-// ─── WÜRFEL-FX ───────────────────────────────────────────────
-const WURFEL_FX = {
-  X3X2:  s => ({...s, X: s.X, tier: 1, x: s.x * s.X, note:"X³→X²"}),
-  X2X:   s => ({...s, tier: 2, x: s.x * s.X / 3, note:"X²→X"}),
-  X1:    s => ({...s, tier: 3, x: s.x / s.X, note:"X→1"}),
-  X0:    s => ({...s, tier: 3, x: 0, y: 0, z: 0, w: 0, note:"reset 1"}),
-  X0X:   s => ({...s, tier: 2, x: s.X, note:"1→X"}),
-  XX2:   s => ({...s, tier: 1, x: s.x * s.X, note:"X→X²"}),
-  X2X3:  s => ({...s, tier: 0, x: s.x * s.X, note:"X²→X³"}),
-  JUMP:  s => {
-    // X² → 1 → X³ → X
-    const z2 = s.x * s.X;
-    const eins = 0;
-    const z3 = s.X ** 3;
-    const x = s.X;
-    return {...s, tier: 2, x: z2, y: eins, z: z3, w: x, note:"sprung"};
-  }
-};
+  // ─── DOM-REFERENZEN ────────────────────────────────────────────
+  const canvas = document.getElementById('orbitCanvas');
+  const ctx = canvas.getContext('2d');
+  const logBox = document.getElementById('log');
 
-// ─── LOG ─────────────────────────────────────────────────────
-function log(msg, type="ok"){
-  const l = $("log");
-  const t = new Date().toLocaleTimeString();
-  const d = document.createElement("div");
-  d.innerHTML = `<span class="t">[${t}]</span> <span class="${type}">${msg}</span>`;
-  l.appendChild(d);
-  if(l.children.length > 40) l.removeChild(l.children[0]);
-  l.scrollTop = l.scrollHeight;
-  $("logCount").textContent = ++S.logN;
-}
+  // ─── LEADER-ELECTION (wie gehabt) ──────────────────────────────
+  const LEADER_KEY = 'iki1uc-orbit-leader';
+  const LEADER_TIMEOUT = 2000;
+  const HEARTBEAT_EVERY = 500;
 
-// ═══════════════════════════════════════════════════════════════
-// 9 RINGE RENDERN
-// ═══════════════════════════════════════════════════════════════
-function renderRinge(){
-  const c = $("ringe");
-  c.innerHTML = "";
-  // 9 Spalten (Ringe 1..9), jede Spalte 9 Zellen (Slots 1..9)
-  for(let s=0; s<9; s++){
-    const col = document.createElement("div");
-    col.className = "ring-col";
-    const lab = document.createElement("div");
-    lab.className = "ring-lab";
-    lab.textContent = "R" + (s+1);
-    col.appendChild(lab);
-    for(let r=0; r<9; r++){
-      const cell = document.createElement("div");
-      cell.className = "cell";
-      const d = S.ringe[r][s];
-      if(d.pos === S.kern) cell.classList.add("kern");
-      else if(d.r === S.kernRing || d.s === S.kernSlot) cell.classList.add("mitte");
-      if(d.aktiv) cell.classList.add("aktiv");
-      if(d.gemittet) cell.classList.add("gemittet");
-      cell.textContent = d.pos;
-      cell.title = `R${d.r}·S${d.s} → pos ${d.pos} = ${d.wert}`;
-      cell.onclick = () => clickCell(r, s);
-      col.appendChild(cell);
+  function tryClaimLeadership() {
+    const now = Date.now();
+    const raw = localStorage.getItem(LEADER_KEY);
+    const last = raw ? Number(raw) : 0;
+    if (state.isLeader) {
+      localStorage.setItem(LEADER_KEY, String(now));
+      return;
     }
-    c.appendChild(col);
+    if (now - last > LEADER_TIMEOUT) {
+      localStorage.setItem(LEADER_KEY, String(now));
+      state.isLeader = true;
+      updateRoleBadge();
+      log('👑 Leader übernommen');
+    }
   }
-}
 
-// Klick auf Zelle → Position in LAGE setzen
-function clickCell(r, s){
-  const d = S.ringe[r][s];
-  S.x = d.r; S.y = d.s; S.z = d.wert; S.w++;
-  // Alle anderen "aktiv" entfernen
-  S.ringe.forEach(row => row.forEach(x => x.aktiv = false));
-  d.aktiv = true;
-  $("curMove").textContent = `R${d.r}·S${d.s}`;
-  renderRinge();
-  renderLage();
-  log(`◈ R${d.r}·S${d.s} → x=${d.r} y=${d.s} z=${d.wert}`, "op");
-}
+  function updateRoleBadge() {
+    const el = document.getElementById('roleStatus');
+    el.textContent = state.isLeader ? 'LEADER' : 'FOLLOWER';
+    el.className = 'badge ' + (state.isLeader ? 'leader' : 'follower');
+  }
 
-// ═══════════════════════════════════════════════════════════════
-// MITTE VERTEILEN · ALLE 9 MITTEN
-// ═══════════════════════════════════════════════════════════════
-function teileAlleMitten(){
-  // Jede 9er-Gruppe (Ring) hat eine "Mitte" (Slot 5) — die teilt an die 8 anderen
-  // Auch die Gesamtmitte (41) teilt an alle
-  let totalGeteilt = 0;
-  S.ringe.forEach((row, r) => {
-    // Mitte des Rings = Slot 5 (index 4)
-    row.forEach((cell, s) => {
-      if(s === 4){  // Slot 5 = Mitte
-        cell.gemittet = true;
-        // teilt an alle anderen in diesem Ring
-        row.forEach((c, i) => {
-          if(i !== 4){ c.gemittet = true; totalGeteilt++; }
-        });
+  setInterval(tryClaimLeadership, HEARTBEAT_EVERY);
+  tryClaimLeadership();
+
+  // ─── BROADCASTCHANNEL (Sync) ──────────────────────────────────
+  let bc = null;
+  try {
+    bc = new BroadcastChannel('iki1uc-orbit');
+    bc.onmessage = (e) => {
+      const data = e.data;
+      if (!data) return;
+      if (data.type === 'orbit.step' && !state.isLeader) {
+        state.index = data.index;
+        state.history.push(data.index);
+        if (state.history.length > 10) state.history.shift();
+        syncStatus('● synchronisiert', 'ok');
+        log(`📡 Sync‑Schritt: ${data.symbol}`);
+        updateAllUI();
       }
-    });
-  });
-  // Gesamtmitte
-  S.ringe[S.kernRing-1][S.kernSlot-1].gemittet = true;
-  renderRinge();
-  log(`◈ alle 9 mitten teilen → ${totalGeteilt} zellen gemittet`, "pu");
-  $("netStat").textContent = "GETEILT";
-  $("shareN").textContent = totalGeteilt + 9;
-  $("shareSum").textContent = "=" + (totalGeteilt + 9);
-}
-
-function resetAlles(){
-  S.ringe.forEach(row => row.forEach(c => {
-    c.gemittet = false; c.aktiv = false;
-  }));
-  S.x=S.y=S.z=S.w=0;
-  S.tier = 0;
-  S.seqIdx = 0;
-  S.q = "Q1";
-  S.pol = "NC";
-  renderRinge();
-  renderLage();
-  renderSeq();
-  renderQ();
-  $("netStat").textContent = "KALT";
-  $("shareN").textContent = "81";
-  $("shareSum").textContent = "=81";
-  log("↺ reset · 9 ringe · 81 zellen · mitte 41", "w");
-}
-
-// ═══════════════════════════════════════════════════════════════
-// LAGE · RENDER
-// ═══════════════════════════════════════════════════════════════
-function renderLage(){
-  $("lx").textContent = S.x.toFixed(0);
-  $("ly").textContent = S.y.toFixed(0);
-  $("lz").textContent = S.z.toFixed(0);
-  $("lw").textContent = S.w.toFixed(0);
-  $("cx").textContent = S.x.toFixed(0);
-  $("cy").textContent = S.y.toFixed(0);
-  $("cz").textContent = S.z.toFixed(0);
-  $("cw").textContent = S.w.toFixed(0);
-  const tierLab = ["X³","X²","X","1"][S.tier];
-  $("lmodi").textContent = tierLab;
-  $("lq").textContent = S.q;
-  $("lpol").textContent = S.pol;
-
-  // 4D-Dims
-  $("d1").textContent = `iki–ÄH ${S.x}`;
-  $("d2").textContent = `AH·HA ${S.y}`;
-  $("d3").textContent = `${S.x}·uc·${S.z}`;
-  $("d4").textContent = `Z+Z+W+U ${S.w}`;
-
-  // Eich-Anzeige
-  $("eichV").textContent = S.eich.toFixed(3);
-  $("win2V").textContent = S.win2.toFixed(3);
-  $("win3V").textContent = S.win3.toFixed(3);
-}
-
-// ═══════════════════════════════════════════════════════════════
-// WÜRFEL BUTTONS
-// ═══════════════════════════════════════════════════════════════
-document.querySelectorAll("[data-fx]").forEach(btn => {
-  btn.onclick = () => {
-    const fx = btn.dataset.fx;
-    const f = WURFEL_FX[fx];
-    if(!f) return;
-    const before = {...S};
-    Object.assign(S, f(S));
-    const note = f(S).note || fx;
-    $("curMove").textContent = note;
-    renderLage();
-    // Würfel-Button highlight
-    document.querySelectorAll("[data-fx]").forEach(b => b.classList.remove("hot"));
-    btn.classList.add("hot");
-    log(`◈ ${note} · x=${S.x.toFixed(0)} z=${S.z.toFixed(0)}`, "op");
-  };
-});
-
-// ═══════════════════════════════════════════════════════════════
-// Q1–Q4
-// ═══════════════════════════════════════════════════════════════
-document.querySelectorAll(".q").forEach(q => {
-  q.onclick = () => {
-    S.q = q.dataset.q;
-    renderQ();
-    renderLage();
-    log(`◈ ${S.q} aktiv`, "op");
-  };
-});
-
-function renderQ(){
-  document.querySelectorAll(".q").forEach(el => {
-    el.classList.toggle("on", el.dataset.q === S.q);
-  });
-}
-
-// ═══════════════════════════════════════════════════════════════
-// POLARITÄT
-// ═══════════════════════════════════════════════════════════════
-document.querySelectorAll(".pol").forEach(p => {
-  p.onclick = () => {
-    S.pol = p.dataset.p;
-    renderLage();
-    log(`◈ polarität → ${S.pol}`, "op");
-  };
-});
-
-// ═══════════════════════════════════════════════════════════════
-// SEQUENZ
-// ═══════════════════════════════════════════════════════════════
-function renderSeq(){
-  const el = $("seq");
-  el.innerHTML = "";
-  SEQ.forEach((s, i) => {
-    const span = document.createElement("span");
-    span.textContent = s.sym;
-    span.style.cssText = `border:1px solid ${i===S.seqIdx?"#6cf":"#0f05"};padding:3px 7px;border-radius:3px;color:${i===S.seqIdx?"#6cf":"#0f07"}`;
-    el.appendChild(span);
-  });
-  $("seqStep").textContent = (S.seqIdx+1) + "/9";
-}
-
-$("btnStep").onclick = () => {
-  const s = SEQ[S.seqIdx];
-  Object.assign(S, s.fx(S));
-  S.seqIdx = (S.seqIdx + 1) % SEQ.length;
-  renderSeq();
-  renderLage();
-  log(`◈ seq → ${s.sym} ${s.name}`, "op");
-};
-
-// ═══════════════════════════════════════════════════════════════
-// BUTTONS
-// ═══════════════════════════════════════════════════════════════
-$("btnMitteAlle").onclick = teileAlleMitten;
-$("btnReset").onclick = resetAlles;
-
-// ═══════════════════════════════════════════════════════════════
-// 3D CANVAS · LAGE-VISUALISIERUNG
-// ═══════════════════════════════════════════════════════════════
-function initStage(){
-  const cv = $("stage");
-  const ctx = cv.getContext("2d");
-
-  function resize(){
-    const r = cv.getBoundingClientRect();
-    const dpr = Math.min(window.devicePixelRatio||1, 2);
-    cv.width = r.width * dpr;
-    cv.height = r.height * dpr;
-    ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
-  }
-  resize();
-  window.addEventListener("resize", resize);
-
-  let ax = 0.3, ay = 0.4;
-
-  function rotX(p,a){const c=Math.cos(a),s=Math.sin(a);return [p[0], p[1]*c-p[2]*s, p[1]*s+p[2]*c];}
-  function rotY(p,a){const c=Math.cos(a),s=Math.sin(a);return [p[0]*c+p[2]*s, p[1], -p[0]*s+p[2]*c];}
-  function proj(p, w, h, scale){
-    const fov = 320;
-    const s = fov / (fov + p[2]*2.5);
-    return [w/2 + p[0]*s*scale, h/2 + p[1]*s*scale];
+      if (data.type === 'orbit.reset' && !state.isLeader) {
+        state.index = 0;
+        state.history = [];
+        updateAllUI();
+        log('📡 Sync‑Reset');
+      }
+      if (data.type === 'orbit.mode' && !state.isLeader) {
+        state.mode = data.mode;
+        applyModeButtons(data.mode);
+        updateAllUI();
+      }
+      if (data.type === 'sli.open') {
+        state.sliOpen = data.open;
+        updateSliUI();
+        log(`🔓 sli.open = ${state.sliOpen ? 'OFFEN' : 'GESCHLOSSEN'}`);
+      }
+    };
+    setTimeout(() => syncStatus('● verbunden', 'ok'), 500);
+  } catch (_) {
+    syncStatus('○ kein BC', 'err');
   }
 
-  function draw(){
-    const r = cv.getBoundingClientRect();
-    const w = r.width, h = r.height;
-    const scale = Math.min(w, h) * 0.32;
+  function broadcast(msg) {
+    if (!bc) return;
+    try { bc.postMessage(msg); } catch (_) {}
+  }
 
-    ctx.fillStyle = "#000";
+  function syncStatus(text, cls) {
+    const el = document.getElementById('syncStatus');
+    el.textContent = text;
+    el.className = cls || 'ok';
+  }
+
+  // ─── UI-UPDATES ────────────────────────────────────────────────
+  function updateAllUI() {
+    const sym = ORBIT[state.index] || '?';
+    const axiom = AXIOM_MAP[sym] || '—';
+    // Navi
+    document.getElementById('naviIndex').textContent = state.index;
+    document.getElementById('naviSymbol').textContent = sym;
+    document.getElementById('naviHeading').textContent = String(state.index * 12).padStart(3,'0') + '°';
+    document.getElementById('naviSpeed').textContent = (state.speed * 0.7 + state.index * 0.02).toFixed(1);
+    document.getElementById('naviMode').textContent = state.mode;
+    // Axiom‑Zähler
+    document.getElementById('axiomIQQ').textContent = state.mode === 'IQQ' ? '● aktiv' : '9 → 3 → 9 → 3';
+    document.getElementById('axiomOCTA').textContent = state.mode === 'OCTA' ? '● aktiv' : '◉ ◆ △ ▣ ↺';
+    document.getElementById('axiomA81').textContent = state.mode === 'A81' ? '● aktiv' : '27 · 81 · 243 · 729';
+    // Wegpunkte
+    renderWaypoints();
+    // Orbit‑Status
+    const orbitStatus = document.getElementById('orbitStatus');
+    orbitStatus.textContent = state.running ? 'AKTIV' : 'PAUSE';
+    orbitStatus.className = 'badge ' + (state.running ? 'aktiv' : 'pause');
+    // sli.open UI
+    updateSliUI();
+    // Canvas wird im Loop gezeichnet
+  }
+
+  function updateSliUI() {
+    const badge = document.getElementById('sliStatusBadge');
+    const btn = document.getElementById('btnSliOpen');
+    if (state.sliOpen) {
+      badge.textContent = '🔓 offen';
+      badge.className = 'badge offen';
+      btn.textContent = '🔒 schließen';
+      btn.classList.add('primary');
+    } else {
+      badge.textContent = '🔒 geschlossen';
+      badge.className = 'badge geschlossen';
+      btn.textContent = '🔓 sli.open';
+      btn.classList.remove('primary');
+    }
+  }
+
+  function renderWaypoints() {
+    const container = document.getElementById('waypointList');
+    container.innerHTML = '';
+    // Zeige die nächsten 8 Symbole ab aktueller Position
+    for (let i = 0; i < 8; i++) {
+      const idx = (state.index + i) % ORBIT.length;
+      const sym = ORBIT[idx];
+      const span = document.createElement('span');
+      span.className = 'waypoint-item' + (i === 0 ? ' active' : '');
+      span.textContent = sym;
+      container.appendChild(span);
+    }
+  }
+
+  function applyModeButtons(mode) {
+    document.querySelectorAll('[id^="btnMode"]').forEach(b => b.classList.remove('active'));
+    const btn = document.getElementById('btnMode' + mode);
+    if (btn) btn.classList.add('active');
+  }
+
+  // ─── CANVAS-ZEICHNUNG (wie gehabt, aber mit Navi‑Overlay) ────
+  function drawOrbit() {
+    const w = canvas.width, h = canvas.height;
+    ctx.shadowBlur = 0;
+    ctx.fillStyle = '#000';
     ctx.fillRect(0, 0, w, h);
 
-    ax += 0.002;
-    ay += 0.003;
-
-    // LAGE-basierte Verschiebung
-    const lx = S.x * 0.05;
-    const ly = S.y * 0.05;
-    const lz = S.z * 0.001;
-
-    // 9 Ringe — jede als Kreis mit 9 Punkten
-    for(let ri = 0; ri < 9; ri++){
-      const ringR = 0.2 + ri * 0.09;
-      const tRing = (S.t * 0.001) + ri * 0.1;
-      for(let si = 0; si < 9; si++){
-        const a = (si / 9) * Math.PI * 2 + tRing;
-        let p = [Math.cos(a) * ringR, Math.sin(a) * ringR, (ri - 4) * 0.08];
-        p = rotX(p, ax);
-        p = rotY(p, ay);
-        p[0] += lx;
-        p[1] += ly;
-        p[2] += lz;
-        const s = proj(p, w, h, scale);
-
-        // Position
-        const d = S.ringe[ri][si];
-        let col = "rgba(0,255,136,0.25)";
-        let rad = 2;
-        if(d.aktiv){ col = "#0f0"; rad = 4; }
-        else if(d.gemittet){ col = "#ff66ff"; rad = 3; }
-        else if(d.pos === S.kern){ col = "#ff66ff"; rad = 3.5; }
-        else if(ri === S.kernRing || si === S.kernSlot){ col = "rgba(108,204,255,0.6)"; rad = 2.5; }
-
+    // Pfad (letzte 5)
+    const history = state.history.slice(-5);
+    history.forEach((idx, i) => {
+      const alpha = 0.1 + (i / 5) * 0.3;
+      const x = 80 + (w - 160) * (i / 4);
+      const y = h - 30;
+      ctx.fillStyle = `rgba(108, 204, 255, ${alpha})`;
+      ctx.font = '16px Consolas';
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'bottom';
+      ctx.fillText(ORBIT[idx] || '?', x, y);
+      if (i > 0) {
+        ctx.strokeStyle = `rgba(108, 204, 255, ${alpha * 0.3})`;
+        ctx.lineWidth = 1;
+        const prevX = 80 + (w - 160) * ((i - 1) / 4);
         ctx.beginPath();
-        ctx.arc(s[0], s[1], rad, 0, Math.PI*2);
-        ctx.fillStyle = col;
-        ctx.fill();
-
-        if(d.aktiv || d.pos === S.kern){
-          ctx.beginPath();
-          ctx.arc(s[0], s[1], rad*3, 0, Math.PI*2);
-          const g = ctx.createRadialGradient(s[0],s[1],0,s[0],s[1],rad*3);
-          g.addColorStop(0, col);
-          g.addColorStop(1, "rgba(0,0,0,0)");
-          ctx.fillStyle = g;
-          ctx.fill();
-        }
+        ctx.moveTo(prevX, y);
+        ctx.lineTo(x, y);
+        ctx.stroke();
       }
+    });
+
+    // Hauptsymbol
+    const symbol = ORBIT[state.index] || '?';
+    ctx.fillStyle = '#6cf';
+    ctx.font = '60px Consolas';
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    ctx.shadowColor = '#6cf';
+    ctx.shadowBlur = 20;
+    ctx.fillText(symbol, w / 2, h / 2 - 20);
+    ctx.shadowBlur = 0;
+
+    // Index + Axiom
+    const axiom = AXIOM_MAP[symbol] || '—';
+    ctx.fillStyle = '#5a7a8a';
+    ctx.font = '14px Consolas';
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'top';
+    ctx.fillText(`#${state.index} · ${axiom}`, w / 2, h / 2 + 40);
+
+    // Speed + Modus + sli.open‑Status
+    ctx.fillStyle = '#3a4a5a';
+    ctx.font = '11px Consolas';
+    ctx.textAlign = 'left';
+    ctx.textBaseline = 'bottom';
+    ctx.fillText(`⏩ ${state.speed}× · ${state.mode} · sli.${state.sliOpen ? 'OPEN' : 'CLOSED'}`, 12, h - 6);
+    ctx.textAlign = 'right';
+    ctx.fillText(`Symbol ${state.index + 1}/${ORBIT.length}`, w - 12, h - 6);
+  }
+
+  // ─── ORBIT-STEP ────────────────────────────────────────────────
+  function stepOrbit() {
+    const next = (state.index + 1) % ORBIT.length;
+    state.index = next;
+    state.history.push(next);
+    if (state.history.length > 10) state.history.shift();
+    // Atomuhr: Takt erhöhen
+    state.atomTick++;
+    const sym = ORBIT[next];
+    const axiom = AXIOM_MAP[sym] || null;
+    if (axiom && state.mode === axiom) {
+      state.axiomCount[axiom] = (state.axiomCount[axiom] || 0) + 1;
+    }
+    updateAllUI();
+    log(`Orbit‑Schritt → ${sym} (${axiom || '—'})`);
+    broadcast({ type: 'orbit.step', index: state.index, symbol: sym });
+  }
+
+  // ─── ATOM-UHR (wird im Loop aktualisiert) ──────────────────────
+  function updateAtomClock(now) {
+    const time = new Date(now);
+    const ms = time.getMilliseconds();
+    const sec = time.getSeconds();
+    const min = time.getMinutes();
+    const hrs = time.getHours();
+    const timeStr = `${String(hrs).padStart(2,'0')}:${String(min).padStart(2,'0')}:${String(sec).padStart(2,'0')}.${String(ms).padStart(3,'0')}`;
+    document.getElementById('atomTime').textContent = timeStr;
+    document.getElementById('atomTick').textContent = state.atomTick;
+    document.getElementById('atomDelta').textContent = (state.atomDelta || 0).toFixed(1);
+  }
+
+  // ─── HAUPT-LOOP ────────────────────────────────────────────────
+  function loop(now) {
+    if (state.lastFrame === null) state.lastFrame = now;
+    const delta = now - state.lastFrame;
+    state.lastFrame = now;
+    state.atomDelta = delta;
+
+    if (state.running && state.isLeader) {
+      state.accumulator += delta;
+      const stepTime = Math.max(100, 800 - state.speed * 60);
+      let guard = 0;
+      while (state.accumulator >= stepTime && guard < 20) {
+        stepOrbit();
+        state.accumulator -= stepTime;
+        guard++;
+      }
+    } else {
+      state.accumulator = 0;
     }
 
-    // Achsen-Kreuz in der Mitte
-    ctx.strokeStyle = "rgba(108,204,255,0.15)";
-    ctx.lineWidth = 1;
-    ctx.beginPath();
-    ctx.moveTo(w/2, 0); ctx.lineTo(w/2, h);
-    ctx.moveTo(0, h/2); ctx.lineTo(w, h/2);
-    ctx.stroke();
-
-    // Achsen-Beschriftung
-    ctx.font = "10px monospace";
-    ctx.fillStyle = "#6cf";
-    ctx.textAlign = "center";
-    ctx.fillText("HÄ", w/2, 12);
-    ctx.fillText("ÄH", w/2, h-4);
-    ctx.textAlign = "left";
-    ctx.fillText("AH", 4, h/2);
-    ctx.textAlign = "right";
-    ctx.fillText("HA", w-4, h/2);
-
-    // Q-Anzeige
-    ctx.font = "9px monospace";
-    ctx.fillStyle = "#0f05";
-    ctx.textAlign = "left";
-    ctx.fillText(`Q1·QI  Q2·ORBIT  Q3·OP  Q4·EVO`, 6, h-18);
-    ctx.fillStyle = "#6cf";
-    ctx.fillText(`aktiv: ${S.q} · pol: ${S.pol} · X: ${["X³","X²","X","1"][S.tier]}`, 6, h-6);
-
-    S.t++;
-    requestAnimationFrame(draw);
+    drawOrbit();
+    updateAtomClock(now);
+    requestAnimationFrame(loop);
   }
-  draw();
-}
 
-// ═══════════════════════════════════════════════════════════════
-// INIT
-// ═══════════════════════════════════════════════════════════════
-window.addEventListener("load", () => {
-  renderRinge();
-  renderLage();
-  renderSeq();
-  renderQ();
-  initStage();
-  log("◈ nanowürfel aktiv · X³→X²→X→1", "ok");
-  log("◈ 9 ringe · 81 zellen · mitte 41", "pu");
-  log("◈ klick zellen oder nutze buttons", "w");
-});
+  // ─── EVENT-BINDING ─────────────────────────────────────────────
+  document.getElementById('btnPlay').addEventListener('click', () => {
+    state.running = !state.running;
+    updateAllUI();
+    log(state.running ? '▶ Fortgesetzt' : '⏸ Pause');
+  });
 
-// Public API
-window.NANO = {
-  lage: () => ({x:S.x, y:S.y, z:S.z, w:S.w, tier:["X³","X²","X","1"][S.tier], q:S.q, pol:S.pol}),
-  setX: (v) => { S.x = v; renderLage(); },
-  setY: (v) => { S.y = v; renderLage(); },
-  setZ: (v) => { S.z = v; renderLage(); },
-  setW: (v) => { S.w = v; renderLage(); },
-  mitte: teileAlleMitten,
-  reset: resetAlles,
-  ringe: () => S.ringe,
-  kern: () => ({ring: S.kernRing, slot: S.kernSlot, pos: S.kern}),
-  eich: () => ({eich: S.eich, win2: S.win2, win3: S.win3}),
-  seq: () => SEQ.map(s => s.sym),
-  step: () => $("btnStep").click()
-};
+  document.getElementById('btnStep').addEventListener('click', () => {
+    if (state.isLeader) stepOrbit();
+    else log('⏭ Schritt nur Leader');
+  });
 
-console.log("◈ NANOWÜRFEL · ALL698869ALL");
-console.log("→ NANO.lage() · NANO.mitte() · NANO.reset() · NANO.step()");
+  document.getElementById('btnReset').addEventListener('click', () => {
+    if (state.isLeader) {
+      state.index = 0;
+      state.history = [];
+      state.atomTick = 0;
+      updateAllUI();
+      log('⟲ Reset');
+      broadcast({ type: 'orbit.reset' });
+    } else log('⟲ Reset nur Leader');
+  });
+
+  document.getElementById('btnSliOpen').addEventListener('click', () => {
+    state.sliOpen = !state.sliOpen;
+    updateSliUI();
+    broadcast({ type: 'sli.open', open: state.sliOpen });
+    log(`🔓 sli.open = ${state.sliOpen ? 'OFFEN' : 'GESCHLOSSEN'}`);
+    if (state.sliOpen) {
+      log('🚪 Schleuse offen – externe Navigation möglich');
+    } else {
+      log('🔒 Schleuse geschlossen – nur intern');
+    }
+  });
+
+  const speedSlider = document.getElementById('speedSlider');
+  const speedLabel = document.getElementById('speedLabel');
+  speedSlider.addEventListener('input', () => {
+    state.speed = parseInt(speedSlider.value, 10);
+    speedLabel.textContent = state.speed + '×';
+  });
+
+  // Modus-Buttons (simplifiziert)
+  document.querySelectorAll('[id^="btnMode"]').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const mode = btn.id.replace('btnMode','');
+      state.mode = mode;
+      applyModeButtons(mode);
+      updateAllUI();
+      broadcast({ type: 'orbit.mode', mode });
+      log(`🌀 Modus: ${mode}`);
+    });
+  });
+
+  // Tastatur
+  document.addEventListener('keydown', (e) => {
+    if (e.key === ' ') { e.preventDefault(); document.getElementById('btnPlay').click(); }
+    if (e.key === 'ArrowRight' && state.isLeader) stepOrbit();
+    if (e.key === 'r' || e.key === 'R') document.getElementById('btnReset').click();
+    if (e.key === 's' || e.key === 'S') document.getElementById('btnSliOpen').click();
+  });
+
+  // ─── LOG-Funktion ──────────────────────────────────────────────
+  function log(msg) {
+    const time = new Date().toLocaleTimeString();
+    const line = document.createElement('div');
+    line.textContent = `[${time}] ${msg}`;
+    logBox.appendChild(line);
+    while (logBox.children.length > 60) logBox.removeChild(logBox.firstChild);
+    logBox.scrollTop = logBox.scrollHeight;
+  }
+
+  // ─── INIT ──────────────────────────────────────────────────────
+  function init() {
+    state.history.push(0);
+    updateAllUI();
+    updateRoleBadge();
+    applyModeButtons('IQQ');
+    log('🚀 IKI1UC · Orbit + Navi + Atomuhr + sli.open gestartet');
+    log('⌨️  Leertaste=Pause  →=Schritt  r=Reset  s=sli.open');
+    requestAnimationFrame(loop);
+  }
+
+  window.addEventListener('error', (e) => log('⚠️ Fehler: ' + e.message), true);
+  setInterval(updateRoleBadge, HEARTBEAT_EVERY);
+  init();
 </script>
+
 </body>
 </html>
