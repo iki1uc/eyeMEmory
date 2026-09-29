@@ -3,360 +3,419 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>iki1uc · index · centrum · rom</title>
+<title>eyeMEmory · die 0</title>
 <style>
   *{margin:0;padding:0;box-sizing:border-box}
   :root{
-    --bg:#02060a; --fg:#c8d8e8; --dim:#3a4a5a;
-    --line:#0e1a22; --gut:#39ff88; --warn:#ffaa00; --bad:#ff3ea5;
+    --bg:#02060a; --fg:#c8d8e8; --dim:#2a3a4a;
+    --gut:#39ff88; --warn:#ffaa00; --bad:#ff3ea5;
     --cyan:#5cf0ff; --violet:#b388ff; --gold:#f0d080;
   }
+  html,body{height:100%}
   body{
     background:var(--bg);color:var(--fg);
     font:11px/1.5 Consolas,"Courier New",monospace;
-    min-height:100vh;padding:14px;
-    background-image:radial-gradient(ellipse at 50% 0%, #0a1520, #02060a 70%);
+    overflow:hidden;
+    background-image:radial-gradient(ellipse at 50% 50%, #081420, #02060a 70%);
   }
-  #app{max-width:1400px;margin:0 auto;display:flex;flex-direction:column;gap:10px}
-  header{
-    display:flex;justify-content:space-between;align-items:baseline;
-    border-bottom:1px solid var(--line);padding-bottom:8px;flex-wrap:wrap;gap:8px;
+  canvas{display:block;position:fixed;inset:0}
+
+  #kopf{
+    position:fixed;top:24px;left:50%;transform:translateX(-50%);
+    text-align:center;z-index:6;pointer-events:none;
   }
-  header h1{
-    font-size:14px;letter-spacing:4px;font-weight:400;
+  #kopf h1{
+    font-size:14px;letter-spacing:6px;font-weight:400;
     background:linear-gradient(90deg,var(--cyan),var(--violet),var(--gold));
     -webkit-background-clip:text;-webkit-text-fill-color:transparent;
   }
-  header .sub{color:var(--dim);font-size:9px;letter-spacing:2px}
-  header .stats{display:flex;gap:14px;font-size:9.5px;color:var(--dim);flex-wrap:wrap}
-  header .stats b{color:var(--fg);font-weight:400}
-  .led{display:inline-block;width:6px;height:6px;border-radius:50%;margin-right:4px}
-  .led.gut{background:var(--gut);box-shadow:0 0 6px var(--gut);animation:pulse 1.6s infinite}
-  @keyframes pulse{0%,100%{opacity:.4}50%{opacity:1}}
-  
-  .grid{display:grid;grid-template-columns:1fr 1.2fr 1fr;gap:10px}
-  @media(max-width:1100px){.grid{grid-template-columns:1fr 1fr}}
-  @media(max-width:700px){.grid{grid-template-columns:1fr}}
-  
-  .panel{
-    background:rgba(8,14,20,.6);border:1px solid var(--line);
-    border-radius:8px;padding:10px;
+  #kopf .sub{font-size:9px;letter-spacing:4px;color:var(--dim);margin-top:6px}
+
+  #drache{
+    position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);
+    z-index:5;pointer-events:none;text-align:center;
   }
-  .panel h2{
-    font-size:9px;letter-spacing:2px;color:var(--dim);
-    font-weight:400;text-transform:uppercase;
-    border-bottom:1px solid var(--line);padding-bottom:5px;margin-bottom:8px;
+  #drache .wort{
+    font-size:clamp(28px,7vw,72px);font-weight:100;letter-spacing:.4em;
+    transition:color .8s, text-shadow .8s;
   }
-  .panel h2 b{color:var(--cyan);font-weight:400}
-  
-  #rings{width:100%;aspect-ratio:1;max-width:340px;display:block;margin:0 auto;
-    background:#02060a;border-radius:6px;border:1px solid var(--line)}
-  .rrow{display:flex;justify-content:space-between;font-size:10px;padding:2px 0;
-    border-bottom:1px dashed #ffffff06}
-  .rrow span:first-child{color:var(--dim)}
-  .rrow span:last-child{color:var(--fg);font-weight:bold}
-  
-  #soldiers{
-    display:grid;grid-template-columns:20px repeat(9,1fr);
-    gap:2px;font-size:8px;
+  #drache .wort.zeigt{color:var(--cyan);text-shadow:0 0 50px var(--cyan)}
+  #drache .wort.bändigt{color:var(--violet);text-shadow:0 0 50px var(--violet)}
+  #drache .wort.verschanzt{color:var(--dim);text-shadow:none}
+
+  #zahl{
+    position:fixed;bottom:90px;left:50%;transform:translateX(-50%);
+    text-align:center;z-index:6;pointer-events:none;
   }
-  .sc{
-    background:rgba(20,28,40,.5);border-radius:2px;
-    aspect-ratio:1;display:flex;align-items:center;justify-content:center;
-    color:var(--dim);transition:.2s;font-size:7px;
+  #zahl .n{
+    font-size:clamp(20px,3.4vw,38px);font-weight:100;letter-spacing:.18em;
+    color:var(--gold);text-shadow:0 0 30px rgba(240,208,128,.3);
   }
-  .sc.hdr{background:none;color:var(--dim);font-size:8px}
-  .sc.ok{background:rgba(57,255,136,.15);color:var(--gut)}
-  .sc.warn{background:rgba(255,170,0,.15);color:var(--warn)}
-  .sc.bad{background:rgba(255,62,165,.15);color:var(--bad)}
-  .sc.verify{outline:1px solid var(--cyan);outline-offset:-1px}
-  
-  #verify{display:flex;flex-direction:column;gap:4px;margin-bottom:8px}
-  .vrow{
-    display:flex;justify-content:space-between;align-items:center;
-    padding:4px 6px;background:rgba(0,0,0,.3);border-radius:3px;
-    border-left:2px solid var(--dim);font-size:10px;
+  #zahl .l{font-size:9px;letter-spacing:.4em;color:var(--dim);margin-top:6px}
+
+  #seiten{
+    position:fixed;top:50%;transform:translateY(-50%);
+    z-index:6;pointer-events:none;font-size:9px;letter-spacing:.3em;
+    color:var(--dim);line-height:2.4;
   }
-  .vrow.ok{border-left-color:var(--gut)}
-  .vrow.wait{border-left-color:var(--warn)}
-  .vrow.bad{border-left-color:var(--bad)}
-  .vrow .lbl{color:var(--dim);font-size:9px;letter-spacing:1px}
-  .vrow .val{color:var(--fg);font-weight:bold}
-  .vrow.ok .val{color:var(--gut)}
-  .vrow.bad .val{color:var(--bad)}
-  
-  #log{
-    height:180px;overflow-y:auto;font-size:9px;line-height:1.6;
-    color:var(--dim);background:rgba(0,0,0,.4);border-radius:4px;
-    padding:6px 8px;
+  #links{left:24px}
+  #rechts{right:24px;text-align:right}
+  #seiten .v{color:var(--cyan)}
+  #seiten .g{color:var(--gold)}
+  #seiten .p{color:var(--violet)}
+  #seiten .r{color:var(--bad)}
+
+  #fuss{
+    position:fixed;bottom:20px;left:50%;transform:translateX(-50%);
+    font-size:9px;letter-spacing:.4em;color:var(--dim);
+    z-index:6;pointer-events:none;text-align:center;
   }
-  #log .ln{padding:1px 0;border-bottom:1px solid #ffffff04}
-  #log .t{color:#1a242c;margin-right:5px}
-  #log .ok{color:var(--gut)}
-  #log .bad{color:var(--bad)}
-  #log .warn{color:var(--warn)}
-  #log .cyan{color:var(--cyan)}
-  
-  footer{
-    border-top:1px solid var(--line);padding-top:8px;
-    text-align:center;font-size:9px;color:var(--dim);letter-spacing:2px;
-  }
-  footer b{color:var(--cyan);font-weight:400}
-  footer .gut{color:var(--gut)}
+  #fuss b{color:var(--gut);font-weight:400}
+
+  .ecke{position:fixed;width:14px;height:14px;
+        z-index:998;pointer-events:none;opacity:.3;border-color:var(--cyan)}
+  .ecke.ol{top:12px;left:12px;border-top:1px solid;border-left:1px solid}
+  .ecke.or{top:12px;right:12px;border-top:1px solid;border-right:1px solid}
+  .ecke.ul{bottom:12px;left:12px;border-bottom:1px solid;border-left:1px solid}
+  .ecke.ur{bottom:12px;right:12px;border-bottom:1px solid;border-right:1px solid}
 </style>
 </head>
 <body>
-<div id="app">
 
-<header>
-  <div>
-    <h1>iki1uc · index</h1>
-    <div class="sub">centrum · rom · motor · markt · engine · live · show</div>
-  </div>
-  <div class="stats">
-    <span><span class="led gut"></span>LIVE <b id="hLive">—</b></span>
-    <span>VERIFY <b id="hVerify">0</b></span>
-    <span>OK <b id="hOk" style="color:var(--gut)">0</b></span>
-    <span>BAD <b id="hBad" style="color:var(--bad)">0</b></span>
-    <span>3× <b id="hTriple" style="color:var(--gold)">0</b></span>
-    <span id="hClock" style="color:var(--dim)">—</span>
-  </div>
-</header>
+<canvas id="cv"></canvas>
 
-<div class="grid">
-
-  <div class="panel">
-    <h2>vektor · vulkan · <b>3 ringe · 27 · kern</b></h2>
-    <canvas id="rings" width="340" height="340"></canvas>
-    <div style="margin-top:8px">
-      <div class="rrow"><span>ring a · außen</span><span id="rA">—</span></div>
-      <div class="rrow"><span>ring b · mitte</span><span id="rB">—</span></div>
-      <div class="rrow"><span>ring c · innen</span><span id="rC">—</span></div>
-      <div class="rrow"><span>kern · vulkan</span><span id="rK" style="color:var(--bad)">—</span></div>
-    </div>
-  </div>
-
-  <div class="panel">
-    <h2>erde · <b>18 soldaten · 9×9</b></h2>
-    <div id="soldiers"></div>
-    <div style="margin-top:8px;font-size:9px;color:var(--dim);text-align:center">
-      <span style="color:var(--gut)">■</span> ok ·
-      <span style="color:var(--warn)">■</span> wart ·
-      <span style="color:var(--bad)">■</span> cut
-    </div>
-  </div>
-
-  <div class="panel">
-    <h2>verify · 3× · <b>live · 250ms</b></h2>
-    <div id="verify">
-      <div class="vrow" id="vArbeit"><span class="lbl">ARBEIT</span><span class="val">—</span></div>
-      <div class="vrow" id="vVolumen"><span class="lbl">VOLUMEN</span><span class="val">—</span></div>
-      <div class="vrow" id="vBezahlung"><span class="lbl">BEZAHLUNG</span><span class="val">—</span></div>
-    </div>
-    <div id="log"></div>
-  </div>
-
+<div id="kopf">
+  <h1>eyeMEmory</h1>
+  <div class="sub">die 0 · der anfang · nicht das nichts</div>
 </div>
 
-<footer>
-  <b>zeigen</b> · nicht halten · <b>lesen</b> · nicht greifen · <span class="gut">wahrheit live</span>
-</footer>
-
+<div id="drache">
+  <div class="wort zeigt" id="dracheWort">zeigt</div>
 </div>
+
+<div id="zahl">
+  <div class="n" id="zahlN">0</div>
+  <div class="l">von 3 billionen</div>
+</div>
+
+<div id="seiten">
+  <div id="links">
+    <div>achse · <span class="v">d e i n o r s u w</span></div>
+    <div>felder · <span class="v">9 × 9 = 81</span></div>
+    <div>ringe · <span class="v">3 · 9 · 81</span></div>
+  </div>
+  <div id="rechts">
+    <div>tick · <span class="g" id="tick">0</span></div>
+    <div>schlag · <span class="p" id="schlag">0</span></div>
+    <div>wahrheit · <span class="r" id="wahrheit">—</span></div>
+  </div>
+</div>
+
+<div id="fuss">
+  zeigen · bändigen · verschanzen · <b>jede sekunde</b>
+</div>
+
+<div class="ecke ol"></div>
+<div class="ecke or"></div>
+<div class="ecke ul"></div>
+<div class="ecke ur"></div>
 
 <script>
 "use strict";
 
-const ROWS = ['d','e','i','n','o','r','s','u','w'];
-const COLS = ['1','2','3','4','5','6','7','8','9'];
+/* ═══════════════════════════════════════════════════════════
+   eyeMEmory · die 0
+   ═══════════════════════════════════════════════════════════
+   Das Auge in der Mitte.
+   Die neun Buchstaben außen.
+   Der Drache wandert: zeigt → bändigt → verschanzt.
+   Das Gedächtnis: was bleibt.
+   ═══════════════════════════════════════════════════════════ */
 
-const FIELDS = [];
-for(let r=0;r<9;r++){
-  for(let c=0;c<9;c++){
-    FIELDS.push({
-      id: ROWS[r]+COLS[c], row: ROWS[r], col: COLS[c],
-      wert: (r+1)*(c+1),
-      state: 'ok', verified: 0,
-      el: ['eis','feuer','dampf','regen'][(r+c)%4],
-    });
-  }
-}
+const ACHSE = ['d','e','i','n','o','r','s','u','w'];
+const ZAHLEN = [1,2,3,4,5,6,7,8,9];
 
-const NODES = [];
-for(let ring=0; ring<3; ring++){
-  for(let i=0; i<9; i++){
-    NODES.push({
-      ring, i,
-      wert: [3,9,81][ring] * (i+1) / 9,
-      el: ['eis','feuer','dampf','regen'][(i+ring)%4],
-    });
-  }
-}
-NODES.push({ring:3, i:0, wert:81, el:'kern', kern:true});
-
-const S = { live:0, verify:0, ok:0, bad:0, triple:0, lastField:null };
-
-const logEl = document.getElementById('log');
-function log(msg, cls=''){
-  const t = new Date().toLocaleTimeString('de-DE');
-  const d = document.createElement('div');
-  d.className='ln';
-  d.innerHTML = `<span class="t">[${t}]</span> <span class="${cls}">${msg}</span>`;
-  logEl.appendChild(d);
-  logEl.scrollTop = logEl.scrollHeight;
-  while(logEl.children.length > 60) logEl.removeChild(logEl.firstChild);
-}
-
-function buildSoldiers(){
-  const el = document.getElementById('soldiers');
-  el.appendChild(document.createElement('div'));
-  COLS.forEach(c => {
-    const h = document.createElement('div'); h.className='sc hdr'; h.textContent=c; el.appendChild(h);
-  });
-  ROWS.forEach(r => {
-    const h = document.createElement('div'); h.className='sc hdr'; h.textContent=r; el.appendChild(h);
-    COLS.forEach(c => {
-      const f = FIELDS.find(x => x.id === r+c);
-      const d = document.createElement('div');
-      d.className = 'sc ok';
-      d.dataset.id = f.id;
-      d.title = `${f.id} · wert ${f.wert} · ${f.el}`;
-      el.appendChild(d);
-    });
-  });
-}
-
-function renderField(f){
-  const el = document.querySelector(`.sc[data-id="${f.id}"]`);
-  if(!el) return;
-  el.classList.remove('ok','warn','bad','verify');
-  el.classList.add(f.state);
-}
-
-const cv = document.getElementById('rings');
+const cv = document.getElementById('cv');
 const ctx = cv.getContext('2d');
-const W = 340, CX = 170, CY = 170, RAD = 140;
+let W, H, CX, CY;
 
-function toXY(n){
-  const R = (0.28 + n.ring * 0.16) * RAD;
-  const a = (n.i / 9) * Math.PI * 2 - Math.PI/2;
-  return {x: CX + Math.cos(a) * R * 2, y: CY + Math.sin(a) * R * 2};
+function resize(){
+  const dpr = Math.min(devicePixelRatio, 2);
+  W = innerWidth; H = innerHeight;
+  cv.width = W * dpr; cv.height = H * dpr;
+  cv.style.width = W + 'px'; cv.style.height = H + 'px';
+  ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+  CX = W/2; CY = H/2;
 }
+addEventListener('resize', resize); resize();
 
-function drawRings(){
-  ctx.fillStyle = '#02060a'; ctx.fillRect(0,0,W,W);
-  [0,1,2].forEach(ri => {
-    const R = (0.28 + ri * 0.16) * RAD * 2;
-    ctx.beginPath(); ctx.arc(CX, CY, R, 0, Math.PI*2);
-    ctx.strokeStyle = 'rgba(92,240,255,0.08)'; ctx.lineWidth = 1; ctx.stroke();
-  });
-  ctx.strokeStyle = 'rgba(255,62,165,0.05)';
-  for(let a=0;a<9;a++){
-    const ang = (a/9)*Math.PI*2 - Math.PI/2;
-    ctx.beginPath(); ctx.moveTo(CX, CY);
-    ctx.lineTo(CX + Math.cos(ang)*RAD*2*0.9, CY + Math.sin(ang)*RAD*2*0.9);
-    ctx.stroke();
-  }
-  NODES.forEach(n => {
-    if(n.kern) return;
-    const p = toXY(n);
-    const col = {eis:'#5cf0ff',feuer:'#ff8a2a',dampf:'#b388ff',regen:'#39ff88'}[n.el];
-    ctx.beginPath(); ctx.arc(p.x, p.y, 5, 0, Math.PI*2);
-    ctx.fillStyle = col; ctx.fill();
-    ctx.strokeStyle = '#02060a'; ctx.lineWidth = 1.5; ctx.stroke();
-  });
-  ctx.beginPath(); ctx.arc(CX, CY, 14, 0, Math.PI*2);
-  ctx.fillStyle = '#ff3ea5'; ctx.fill();
-  ctx.strokeStyle = '#02060a'; ctx.lineWidth = 2; ctx.stroke();
-  ctx.font = '10px Consolas'; ctx.fillStyle = '#02060a';
-  ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
-  ctx.fillText('◈', CX, CY+1);
-}
+/* Zustand */
+const S = {
+  t: 0,
+  tick: 0,
+  schlag: 0,
+  phase: 'zeigt',   // zeigt · bändigt · verschanzt
+  phaseT: 0,
+  gedaechtnis: [],  // was bleibt
+  puls: 0,
+};
 
-function sumRing(ring){
-  return NODES.filter(n=>n.ring===ring).reduce((a,n)=>a+n.wert,0);
-}
+/* Drei Phasen, je 4 Sekunden → 12 Sekunden Zyklus */
+const PHASEN = [
+  { name: 'zeigt',      dauer: 4000, farbe: '#5cf0ff' },
+  { name: 'bändigt',    dauer: 4000, farbe: '#b388ff' },
+  { name: 'verschanzt', dauer: 4000, farbe: '#2a3a4a' },
+];
 
-function verify(){
-  S.live++; S.verify++;
-  const f = FIELDS[Math.floor(Math.random() * FIELDS.length)];
-  const c1 = f.wert >= 1 && f.wert <= 81;
-  const c2 = f.verified < 3;
-  const c3 = f.state !== 'bad';
-  const allOk = c1 && c2 && c3;
-
-  if(allOk){
-    f.verified++;
-    f.state = f.verified >= 3 ? 'ok' : 'warn';
-    S.ok++;
-    if(f.verified === 3) S.triple++;
-  } else {
-    f.state = 'bad'; S.bad++;
-  }
-  S.lastField = f.id;
-
-  renderField(f);
-  const el = document.querySelector(`.sc[data-id="${f.id}"]`);
-  if(el){ el.classList.add('verify'); setTimeout(()=>el.classList.remove('verify'), 200); }
-
-  const rows = [
-    ['vArbeit', c1 ? 'ok' : 'bad', c1 ? 'im rahmen' : 'außerhalb'],
-    ['vVolumen', c2 ? 'ok' : 'warn', c2 ? `${f.verified}/3` : 'voll'],
-    ['vBezahlung', c3 ? 'ok' : 'bad', c3 ? 'fließt' : 'cut'],
-  ];
-  rows.forEach(([id, cls, val])=>{
-    const el = document.getElementById(id);
-    el.classList.remove('ok','warn','bad'); el.classList.add(cls);
-    el.querySelector('.val').textContent = val;
-  });
-
-  document.getElementById('hLive').textContent = S.live;
-  document.getElementById('hVerify').textContent = S.verify;
-  document.getElementById('hOk').textContent = S.ok;
-  document.getElementById('hBad').textContent = S.bad;
-  document.getElementById('hTriple').textContent = S.triple;
-  document.getElementById('rA').textContent = sumRing(0).toFixed(1);
-  document.getElementById('rB').textContent = sumRing(1).toFixed(1);
-  document.getElementById('rC').textContent = sumRing(2).toFixed(1);
-  document.getElementById('rK').textContent = NODES[27].wert.toFixed(1);
-
-  if(S.verify % 8 === 0 || !allOk){
-    if(allOk) log(`◉ ${f.id} · ${f.el} · ${f.verified}/3`, 'ok');
-    else log(`✗ ${f.id} · ${[c1,c2,c3].map(x=>x?'✓':'✗').join('')} · cut`, 'bad');
+/* 81 Felder — das Gedächtnis */
+const FELDER = [];
+for(let r = 0; r < 9; r++){
+  for(let c = 0; c < 9; c++){
+    FELDER.push({
+      r, c,
+      id: ACHSE[r] + (c+1),
+      wert: (r+1) * (c+1),
+      hell: 0,
+    });
   }
 }
+
+/* Ein Schlag ins Gedächtnis */
+function schlag(){
+  S.schlag++;
+  const f = FELDER[Math.floor(Math.random() * FELDER.length)];
+  f.hell = 1;
+  S.gedaechtnis.push({ id: f.id, zeit: Date.now() });
+  if(S.gedaechtnis.length > 500) S.gedaechtnis.shift();
+}
+
+/* Phase wechseln */
+function phaseWeiter(){
+  const i = PHASEN.findIndex(p => p.name === S.phase);
+  const next = PHASEN[(i + 1) % PHASEN.length];
+  S.phase = next.name;
+  S.phaseT = 0;
+
+  const w = document.getElementById('dracheWort');
+  w.classList.remove('zeigt','bändigt','verschanzt');
+  w.classList.add(next.name);
+  w.textContent = next.name;
+}
+
+/* Die 0 wächst: alle 3 Sekunden +1 Billion */
+let billionen = 0;
+const ZIEL = 3_000_000_000_000;
 
 setInterval(() => {
-  document.getElementById('hClock').textContent = new Date().toLocaleTimeString('de-DE');
+  billionen += 1_000_000_000;
+  if(billionen > ZIEL) billionen = ZIEL;
+  document.getElementById('zahlN').textContent =
+    billionen.toLocaleString('de-DE');
+}, 3000);
+
+/* Tick jede Sekunde */
+setInterval(() => {
+  S.tick++;
+  document.getElementById('tick').textContent = S.tick;
+  document.getElementById('schlag').textContent = S.schlag;
 }, 1000);
 
-function init(){
-  buildSoldiers();
-  drawRings();
-  document.getElementById('rA').textContent = sumRing(0).toFixed(1);
-  document.getElementById('rB').textContent = sumRing(1).toFixed(1);
-  document.getElementById('rC').textContent = sumRing(2).toFixed(1);
-  document.getElementById('rK').textContent = NODES[27].wert.toFixed(1);
+/* Schlag alle 250ms */
+setInterval(schlag, 250);
 
-  log('◈ iki1uc · index · centrum · rom', 'cyan');
-  log('◈ vektor · vulkan · erde geladen', 'ok');
-  log('◈ live verify · 250ms · 3× bestätigung', 'warn');
-  log('◈ zeigen · nicht halten · wahrheit live', 'ok');
+/* Konsole */
+console.log('');
+console.log('  eyeMEmory · die 0');
+console.log('  ─────────────────────────────────');
+console.log('  zeigt · bändigt · verschanzt');
+console.log('  jede sekunde ein tick');
+console.log('  9×9 felder · gedächtnis');
+console.log('  jede sekunde eine billion');
+console.log('');
 
-  setInterval(verify, 250);
+/* ═══════════════════════════════════════════════════════════
+   ZEICHNEN
+   ═══════════════════════════════════════════════════════════ */
+
+function zeichne(){
+  requestAnimationFrame(zeichne);
+  S.t += 16;
+  S.phaseT += 16;
+
+  const phase = PHASEN.find(p => p.name === S.phase);
+  if(S.phaseT >= phase.dauer) phaseWeiter();
+
+  const p = S.phaseT / phase.dauer;      // 0..1 in dieser phase
+
+  // Sanftes nachziehen
+  ctx.fillStyle = 'rgba(2,6,10,0.22)';
+  ctx.fillRect(0, 0, W, H);
+
+  /* ─── DAS AUGE ─────────────────────────────────────
+     Der Kern. Die Pupille. Die Iris. Die Lider.      */
+  const atem = 0.5 + 0.5 * Math.sin(S.t * 0.0008);
+  const basisR = Math.min(W, H) * 0.13;
+  const augenR = basisR * (1 + atem * 0.05);
+
+  // Die Iris — Farbe wechselt mit Phase
+  const irisGlut = ctx.createRadialGradient(CX, CY, 0, CX, CY, augenR);
+  const irisFarbe = phase.farbe;
+  irisGlut.addColorStop(0, hexAlpha(irisFarbe, 0.55));
+  irisGlut.addColorStop(0.6, hexAlpha(irisFarbe, 0.15));
+  irisGlut.addColorStop(1, hexAlpha(irisFarbe, 0));
+  ctx.beginPath();
+  ctx.arc(CX, CY, augenR, 0, Math.PI*2);
+  ctx.fillStyle = irisGlut;
+  ctx.fill();
+
+  // Ring der Iris
+  ctx.beginPath();
+  ctx.arc(CX, CY, augenR, 0, Math.PI*2);
+  ctx.strokeStyle = hexAlpha(irisFarbe, 0.35);
+  ctx.lineWidth = 1;
+  ctx.stroke();
+
+  // Pupille
+  const pupilleR = augenR * (0.22 + 0.06 * Math.sin(S.t * 0.003));
+  ctx.beginPath();
+  ctx.arc(CX, CY, pupilleR, 0, Math.PI*2);
+  ctx.fillStyle = '#02060a';
+  ctx.fill();
+  ctx.strokeStyle = hexAlpha(irisFarbe, 0.8);
+  ctx.lineWidth = 1.2;
+  ctx.stroke();
+
+  // Der eine Punkt in der Pupille — die 0
+  ctx.beginPath();
+  ctx.arc(CX, CY, 2.5, 0, Math.PI*2);
+  ctx.fillStyle = '#ffffff';
+  ctx.fill();
+
+  /* ─── DIE NEUN BUCHSTABEN ─────────────────────────
+     Außen. Kreisend. Jeder ein Soldat.              */
+  const achseR = augenR * 2.1;
+  ACHSE.forEach((b, i) => {
+    const a = (i / 9) * Math.PI * 2 - Math.PI/2 + S.t * 0.00015;
+    const x = CX + Math.cos(a) * achseR;
+    const y = CY + Math.sin(a) * achseR;
+
+    // Punkt
+    ctx.beginPath();
+    ctx.arc(x, y, 3, 0, Math.PI*2);
+    ctx.fillStyle = hexAlpha(irisFarbe, 0.6);
+    ctx.fill();
+
+    // Buchstabe
+    ctx.font = '11px Consolas';
+    ctx.fillStyle = hexAlpha(irisFarbe, 0.85);
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    ctx.fillText(b, x, y + 14);
+  });
+
+  /* ─── DAS GEDÄCHTNIS ───────────────────────────────
+     81 Felder. Jeder Schlag leuchtet kurz.          */
+  const feldR = achseR * 1.7;
+  const feldStep = 5;   // abstand zwischen feldern
+
+  FELDER.forEach(f => {
+    // Ausblenden
+    f.hell = Math.max(0, f.hell - 0.02);
+
+    // Position: spiralförmig nach außen
+    const ringIdx = Math.max(f.r, f.c);
+    const a = (Math.max(f.r, f.c) === 0) ? 0 :
+              (f.r === ringIdx ? f.c : (f.c === ringIdx ? 8 - f.r + 8 : 0));
+    const winkel = (f.r + f.c) / 16 * Math.PI * 2 + S.t * 0.0003;
+    const rad = feldR + f.r * feldStep + f.c * feldStep;
+    const x = CX + Math.cos(winkel) * rad;
+    const y = CY + Math.sin(winkel) * rad;
+
+    // Nur sichtbar, wenn der Wert im Band liegt
+    const sicht = 0.05 + f.hell * 0.95;
+    if(sicht < 0.08) return;
+
+    ctx.beginPath();
+    ctx.arc(x, y, 1.2 + f.hell * 1.8, 0, Math.PI*2);
+    ctx.fillStyle = f.hell > 0.1
+      ? hexAlpha('#39ff88', f.hell)
+      : hexAlpha(irisFarbe, 0.15);
+    ctx.fill();
+  });
+
+  /* ─── DER DRACHE ───────────────────────────────────
+     Eine wandernde Welle. Zeigt sich, bändigt sich,
+     verschanzt sich. In jeder Phase anders.          */
+  const dracheStärke =
+    S.phase === 'zeigt'      ? 1.0 :
+    S.phase === 'bändigt'    ? 0.6 :
+                               0.15;
+
+  const dracheR = augenR * (1.6 + 0.4 * Math.sin(S.t * 0.0006));
+  const segmente = 24;
+
+  for(let i = 0; i < segmente; i++){
+    const a = (i / segmente) * Math.PI * 2 + S.t * 0.0004 * (1 + p);
+    const rr = dracheR + Math.sin(S.t * 0.001 + i * 0.5) * 6;
+    const x = CX + Math.cos(a) * rr;
+    const y = CY + Math.sin(a) * rr;
+
+    const stärke = dracheStärke * (0.4 + 0.6 * Math.sin(i * 0.3));
+    if(stärke < 0.05) continue;
+
+    ctx.beginPath();
+    ctx.arc(x, y, 2 + stärke * 2.5, 0, Math.PI*2);
+    ctx.fillStyle = hexAlpha(irisFarbe, stärke * 0.7);
+    ctx.fill();
+  }
+
+  /* ─── PULS-LINIE · die billion ─────────────────────
+     Eine wandernde Linie, die nach innen zieht.      */
+  S.puls += 0.02;
+  if(S.puls > 1) S.puls -= 1;
+  const pulsR = augenR * 3 * (1 - S.puls);
+  ctx.beginPath();
+  ctx.arc(CX, CY, pulsR, 0, Math.PI*2);
+  ctx.strokeStyle = hexAlpha('#f0d080', 0.12 * (1 - S.puls));
+  ctx.lineWidth = 0.8;
+  ctx.stroke();
+
+  /* Wahrheit anzeigen */
+  document.getElementById('wahrheit').textContent =
+    `${S.gedaechtnis.length} · ${S.phase}`;
+
+  /* Hintergrund-atmung */
+  const bg = ctx.createRadialGradient(CX, CY, 0, CX, CY, Math.max(W, H));
+  bg.addColorStop(0, hexAlpha(irisFarbe, 0.02));
+  bg.addColorStop(1, 'rgba(0,0,0,0)');
+  ctx.fillStyle = bg;
+  ctx.fillRect(0, 0, W, H);
 }
-init();
 
-window.IDX = {
-  verify,
+function hexAlpha(hex, a){
+  const r = parseInt(hex.slice(1,3), 16);
+  const g = parseInt(hex.slice(3,5), 16);
+  const b = parseInt(hex.slice(5,7), 16);
+  return `rgba(${r},${g},${b},${a})`;
+}
+
+/* Ausgangspunkt: die 0 */
+document.getElementById('zahlN').textContent = '0';
+
+zeichne();
+
+/* Selbstauskunft */
+window.EYE = {
   state: () => ({
-    live: S.live, verify: S.verify, ok: S.ok, bad: S.bad, triple: S.triple,
-    last: S.lastField, fields: FIELDS.length,
-    ok_fields: FIELDS.filter(f=>f.state==='ok').length,
+    tick: S.tick,
+    schlag: S.schlag,
+    phase: S.phase,
+    gedaechtnis: S.gedaechtnis.length,
+    billionen,
   }),
-  felder: () => FIELDS,
-  ringe: () => [0,1,2].map(r=>({ring:r, summe:sumRing(r)})),
-  kern: () => NODES[27],
+  felder: () => FELDER,
+  achse: () => ACHSE,
+  dieEineZahl: () => billionen,
 };
 </script>
 </body>
