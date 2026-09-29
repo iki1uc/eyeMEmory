@@ -1,1 +1,484 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>🧿 QUECKSILBER · METABALL · ECHTE FLUID-PHYSIK</title>
 
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      background: radial-gradient(ellipse at 20% 30%, #1a1a24, #000000);
+      min-height: 100vh;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      font-family: 'Segoe UI', 'Consolas', monospace;
+      padding: 12px;
+      color: #c0d0d0;
+    }
+
+    .container {
+      max-width: 1000px;
+      width: 100%;
+      background: rgba(12, 12, 20, 0.5);
+      backdrop-filter: blur(2px);
+      border-radius: 32px;
+      padding: 20px 24px 30px;
+      border: 1px solid rgba(180, 200, 220, 0.08);
+      box-shadow: 0 20px 60px rgba(0, 0, 0, 0.8), inset 0 0 60px rgba(200, 220, 240, 0.02);
+    }
+
+    .header {
+      display: flex;
+      justify-content: space-between;
+      align-items: baseline;
+      flex-wrap: wrap;
+      border-bottom: 1px solid rgba(180, 200, 220, 0.06);
+      padding-bottom: 6px;
+      margin-bottom: 14px;
+    }
+    .header h1 {
+      font-size: 24px;
+      font-weight: 300;
+      letter-spacing: 4px;
+      background: linear-gradient(135deg, #e0e8f0, #b0c8d8, #8098b0, #c0d8e8);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .header h1 small {
+      font-size: 11px;
+      letter-spacing: 2px;
+      -webkit-text-fill-color: #4a5a6a;
+      color: #4a5a6a;
+    }
+
+    .status-badge { display: flex; gap: 16px; font-size: 11px; color: #5a7a8a; letter-spacing: 1px; flex-wrap: wrap; }
+    .status-badge span { display: flex; align-items: center; gap: 5px; }
+    .dot { display: inline-block; width: 8px; height: 8px; border-radius: 50%; background: #2a4a5a; transition: 0.3s; }
+    .dot.on { background: #8cf0d0; box-shadow: 0 0 12px #8cf0d0; }
+    .dot.gold { background: #f0d080; box-shadow: 0 0 12px #f0d080; }
+
+    .canvas-wrap {
+      position: relative;
+      margin: 10px 0 18px;
+      border-radius: 20px;
+      background: rgba(4, 6, 10, 0.85);
+      border: 1px solid rgba(120, 160, 190, 0.04);
+      box-shadow: inset 0 0 40px rgba(0, 0, 0, 0.7);
+      aspect-ratio: 4 / 3;
+      width: 100%;
+      overflow: hidden;
+      cursor: crosshair;
+    }
+    #gooCanvas, #highlightCanvas {
+      position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+    }
+    #gooCanvas { filter: blur(9px) contrast(26); }
+    #highlightCanvas { pointer-events: none; }
+
+    .hint {
+      position: absolute; bottom: 8px; left: 12px;
+      font-size: 10px; color: rgba(200,220,240,0.35);
+      letter-spacing: 1px; pointer-events: none;
+    }
+
+    .controls { display: flex; flex-wrap: wrap; gap: 10px 14px; align-items: center; margin: 8px 0 6px; padding: 6px 4px; border-top: 1px solid rgba(100, 140, 170, 0.04); }
+    .controls button {
+      background: rgba(20, 28, 36, 0.5);
+      border: 1px solid rgba(120, 160, 190, 0.08);
+      color: #9ab0c0;
+      padding: 6px 16px;
+      border-radius: 30px;
+      font-size: 12px;
+      font-family: inherit;
+      letter-spacing: 1.2px;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+    .controls button:hover { background: rgba(40, 70, 90, 0.3); border-color: rgba(160, 200, 240, 0.2); color: #d0e8f8; transform: translateY(-1px); }
+    .controls button.primary { border-color: rgba(180, 220, 255, 0.15); color: #c0dce8; }
+    .controls button.primary.active { background: rgba(80,200,255,0.15); border-color: #80c0e0; color: #d0e8f8; }
+    .controls button.ds9 { border-color: rgba(255, 215, 0, 0.1); color: #e8d080; }
+    .controls button.ds9.active { background: rgba(255,215,0,0.12); border-color: #f0d080; }
+    .controls button.danger { border-color: rgba(255, 80, 80, 0.08); color: #d06060; }
+    .controls button.danger:hover { background: rgba(255, 80, 80, 0.06); }
+
+    .info-row { display: flex; flex-wrap: wrap; justify-content: space-between; font-size: 11px; color: #4a6a7a; padding: 4px 0; border-top: 1px solid rgba(100, 140, 170, 0.03); margin-top: 4px; }
+    .info-row .val { color: #aac8d8; font-weight: 400; }
+
+    .log {
+      background: rgba(0, 0, 0, 0.3);
+      border-radius: 14px;
+      padding: 6px 14px;
+      font-size: 10px;
+      color: #4a6a7a;
+      max-height: 70px;
+      overflow-y: auto;
+      border: 1px solid rgba(100, 140, 170, 0.02);
+      margin-top: 8px;
+      line-height: 1.6;
+    }
+    .log .ok { color: #80d0b0; }
+    .log .flow { color: #d0b080; }
+    .log .whirl { color: #c080d0; }
+    .log .ds9 { color: #e8d080; }
+    .log .magnet { color: #70c8ff; }
+
+    .footer { text-align: center; margin-top: 12px; color: #1a2a30; font-size: 9px; letter-spacing: 3px; }
+    .footer .gold { color: #e8d080; }
+    .footer .silver { color: #b0c8d8; }
+
+    @media (max-width: 700px) {
+      .container { padding: 12px; }
+      .header h1 { font-size: 17px; letter-spacing: 2px; }
+      .controls button { font-size: 10px; padding: 4px 12px; }
+      .status-badge { font-size: 9px; gap: 8px; }
+    }
+  </style>
+</head>
+<body>
+
+<div class="container">
+
+  <div class="header">
+    <h1>🧿 QUECKSILBER <small>METABALL · ECHTE FLUID-PHYSIK</small></h1>
+    <div class="status-badge">
+      <span><span class="dot" id="dotMagnet"></span> MAGNET</span>
+      <span><span class="dot" id="dotDs9"></span> DS9</span>
+    </div>
+  </div>
+
+  <div class="canvas-wrap" id="canvasWrap">
+    <canvas id="gooCanvas"></canvas>
+    <canvas id="highlightCanvas"></canvas>
+    <div class="hint">Klick auf Tropfen = teilen · Klick auf Leerraum = neuer Tropfen</div>
+  </div>
+
+  <div class="controls">
+    <button class="primary" id="btnMagnet">🧲 MAGNET</button>
+    <button id="btnAdd">💧 TROPFEN +</button>
+    <button id="btnSplit">✂ SPLIT</button>
+    <button id="btnQuake">⚡ QUAKE</button>
+    <button class="ds9" id="btnDs9">★ DS9</button>
+    <button class="danger" id="btnReset">⟲ RESET</button>
+  </div>
+
+  <div class="info-row">
+    <span>TROPFEN: <span class="val" id="countDisplay">0</span></span>
+    <span>MASSE (Σr²): <span class="val" id="massDisplay">0</span></span>
+    <span>VERSCHMOLZEN: <span class="val" id="mergeDisplay">0</span></span>
+    <span>GETEILT: <span class="val" id="splitDisplay">0</span></span>
+  </div>
+
+  <div class="log" id="log">
+    [🧿] Metaball-Engine bereit · echte Masse-/Impulserhaltung aktiv
+  </div>
+
+  <div class="footer">
+    <span class="gold">★</span> QUECKSILBER · <span class="silver">flüssiges Metall, keine Symbol-Grafik</span>
+  </div>
+</div>
+
+<script>
+// ================================================================
+// QUECKSILBER · METABALL-PHYSIK
+// ================================================================
+
+const wrap = document.getElementById('canvasWrap');
+const gooCanvas = document.getElementById('gooCanvas');
+const hiCanvas = document.getElementById('highlightCanvas');
+const gooCtx = gooCanvas.getContext('2d');
+const hiCtx = hiCanvas.getContext('2d');
+
+let W = 0, H = 0, DPR = 1;
+
+function resize() {
+  const rect = wrap.getBoundingClientRect();
+  W = rect.width; H = rect.height;
+  DPR = window.devicePixelRatio || 1;
+  [gooCanvas, hiCanvas].forEach(c => {
+    c.width = W * DPR;
+    c.height = H * DPR;
+  });
+  gooCtx.setTransform(DPR, 0, 0, DPR, 0, 0);
+  hiCtx.setTransform(DPR, 0, 0, DPR, 0, 0);
+}
+window.addEventListener('resize', resize);
+
+// ─── PHYSIK-KONSTANTEN ─────────────────────────────────────────
+const GRAVITY = 0.25;
+const DAMP = 0.986;
+const WALL_BOUNCE = 0.55;
+const MAGNET_STRENGTH = 0.9;
+const MERGE_FACTOR = 0.6;   // Abstand < sumR * MERGE_FACTOR → verschmelzen
+const REPEL_FACTOR = 0.015;
+const MIN_SPLIT_R = 15;
+const MAX_DROPS = 60;
+
+// ─── STATE ──────────────────────────────────────────────────────
+let drops = [];
+let mergeCount = 0, splitCount = 0;
+let magnetOn = false, ds9On = false;
+const mouse = { x: -1000, y: -1000, active: false };
+
+class Drop {
+  constructor(x, y, r, vx = 0, vy = 0) {
+    this.x = x; this.y = y; this.r = r; this.vx = vx; this.vy = vy;
+  }
+}
+
+function spawnDrop(x, y, r) {
+  if (drops.length >= MAX_DROPS) return null;
+  const d = new Drop(x, y, r, (Math.random() - 0.5) * 1.5, (Math.random() - 0.5) * 1.5);
+  drops.push(d);
+  return d;
+}
+
+function initDrops() {
+  drops = [];
+  mergeCount = 0; splitCount = 0;
+  for (let i = 0; i < 10; i++) {
+    spawnDrop(
+      40 + Math.random() * (W - 80),
+      20 + Math.random() * (H * 0.4),
+      12 + Math.random() * 16
+    );
+  }
+}
+
+// ─── PHYSIK-SCHRITT ─────────────────────────────────────────────
+function step() {
+  for (const d of drops) {
+    if (magnetOn && mouse.active) {
+      const dx = mouse.x - d.x, dy = mouse.y - d.y;
+      const dist = Math.hypot(dx, dy) || 1;
+      d.vx += (dx / dist) * MAGNET_STRENGTH * 0.4;
+      d.vy += (dy / dist) * MAGNET_STRENGTH * 0.4;
+    } else {
+      d.vy += GRAVITY;
+    }
+    d.vx *= DAMP; d.vy *= DAMP;
+    d.x += d.vx; d.y += d.vy;
+
+    if (d.x - d.r < 0) { d.x = d.r; d.vx *= -WALL_BOUNCE; }
+    if (d.x + d.r > W) { d.x = W - d.r; d.vx *= -WALL_BOUNCE; }
+    if (d.y - d.r < 0) { d.y = d.r; d.vy *= -WALL_BOUNCE; }
+    if (d.y + d.r > H) { d.y = H - d.r; d.vy *= -WALL_BOUNCE; }
+  }
+
+  // ─── Verschmelzung / Abstoßung (Masse- & Impulserhaltung) ────
+  const toRemove = new Set();
+  let mergedThisFrame = 0;
+  for (let i = 0; i < drops.length; i++) {
+    if (toRemove.has(i)) continue;
+    for (let j = i + 1; j < drops.length; j++) {
+      if (toRemove.has(j)) continue;
+      const a = drops[i], b = drops[j];
+      const dx = b.x - a.x, dy = b.y - a.y;
+      const dist = Math.hypot(dx, dy) || 0.001;
+      const sumR = a.r + b.r;
+
+      if (dist < sumR * MERGE_FACTOR) {
+        const ma = a.r * a.r, mb = b.r * b.r, total = ma + mb;
+        a.x = (a.x * ma + b.x * mb) / total;
+        a.y = (a.y * ma + b.y * mb) / total;
+        a.vx = (a.vx * ma + b.vx * mb) / total;
+        a.vy = (a.vy * ma + b.vy * mb) / total;
+        a.r = Math.sqrt(total);
+        toRemove.add(j);
+        mergedThisFrame++;
+      } else if (dist < sumR) {
+        const overlap = sumR - dist;
+        const nx = dx / dist, ny = dy / dist;
+        const push = overlap * REPEL_FACTOR;
+        a.vx -= nx * push; a.vy -= ny * push;
+        b.vx += nx * push; b.vy += ny * push;
+      }
+    }
+  }
+  if (toRemove.size) {
+    drops = drops.filter((_, idx) => !toRemove.has(idx));
+    mergeCount += mergedThisFrame;
+    log(`🔗 ${mergedThisFrame} Verschmelzung(en) · Masse bleibt erhalten`, 'ok');
+  }
+}
+
+// ─── SPLIT ──────────────────────────────────────────────────────
+function splitDrop(idx) {
+  const d = drops[idx];
+  if (!d || d.r < MIN_SPLIT_R || drops.length >= MAX_DROPS) return false;
+  const newR = d.r / Math.sqrt(2);
+  const angle = Math.random() * Math.PI * 2;
+  const speed = 1.2 + Math.random() * 1.2;
+  const d1 = new Drop(d.x - Math.cos(angle) * newR * 0.5, d.y - Math.sin(angle) * newR * 0.5, newR,
+                       d.vx - Math.cos(angle) * speed, d.vy - Math.sin(angle) * speed);
+  const d2 = new Drop(d.x + Math.cos(angle) * newR * 0.5, d.y + Math.sin(angle) * newR * 0.5, newR,
+                       d.vx + Math.cos(angle) * speed, d.vy + Math.sin(angle) * speed);
+  drops.splice(idx, 1, d1, d2);
+  splitCount++;
+  return true;
+}
+
+function findDropAt(x, y) {
+  for (let i = drops.length - 1; i >= 0; i--) {
+    if (Math.hypot(drops[i].x - x, drops[i].y - y) <= drops[i].r) return i;
+  }
+  return -1;
+}
+
+// ─── RENDER ─────────────────────────────────────────────────────
+function render() {
+  gooCtx.fillStyle = '#05070c';
+  gooCtx.fillRect(0, 0, W, H);
+
+  for (const d of drops) {
+    const grad = gooCtx.createRadialGradient(d.x, d.y, 0, d.x, d.y, d.r);
+    grad.addColorStop(0, '#eaf4fb');
+    grad.addColorStop(0.5, '#a8c4d8');
+    grad.addColorStop(1, '#4a6a7a');
+    gooCtx.fillStyle = grad;
+    gooCtx.beginPath();
+    gooCtx.arc(d.x, d.y, d.r, 0, Math.PI * 2);
+    gooCtx.fill();
+  }
+
+  hiCtx.clearRect(0, 0, W, H);
+
+  if (ds9On) {
+    hiCtx.fillStyle = 'rgba(255, 215, 0, 0.05)';
+    hiCtx.fillRect(0, 0, W, H);
+  }
+
+  for (const d of drops) {
+    hiCtx.beginPath();
+    const hx = d.x - d.r * 0.35, hy = d.y - d.r * 0.35, hr = d.r * 0.28;
+    const hg = hiCtx.createRadialGradient(hx, hy, 0, hx, hy, hr);
+    hg.addColorStop(0, ds9On ? 'rgba(255,240,190,0.85)' : 'rgba(255,255,255,0.75)');
+    hg.addColorStop(1, 'rgba(255,255,255,0)');
+    hiCtx.fillStyle = hg;
+    hiCtx.arc(hx, hy, hr, 0, Math.PI * 2);
+    hiCtx.fill();
+  }
+}
+
+function updateStats() {
+  document.getElementById('countDisplay').textContent = drops.length;
+  const mass = drops.reduce((s, d) => s + d.r * d.r, 0);
+  document.getElementById('massDisplay').textContent = Math.round(mass);
+  document.getElementById('mergeDisplay').textContent = mergeCount;
+  document.getElementById('splitDisplay').textContent = splitCount;
+}
+
+// ─── LOOP ───────────────────────────────────────────────────────
+function loop() {
+  step();
+  render();
+  updateStats();
+  requestAnimationFrame(loop);
+}
+
+// ─── INTERAKTION ────────────────────────────────────────────────
+wrap.addEventListener('mousemove', e => {
+  const rect = wrap.getBoundingClientRect();
+  mouse.x = e.clientX - rect.left;
+  mouse.y = e.clientY - rect.top;
+  mouse.active = true;
+});
+wrap.addEventListener('mouseleave', () => { mouse.active = false; });
+wrap.addEventListener('touchmove', e => {
+  const rect = wrap.getBoundingClientRect();
+  const t = e.touches[0];
+  mouse.x = t.clientX - rect.left;
+  mouse.y = t.clientY - rect.top;
+  mouse.active = true;
+  e.preventDefault();
+}, { passive: false });
+
+wrap.addEventListener('click', e => {
+  const rect = wrap.getBoundingClientRect();
+  const x = e.clientX - rect.left, y = e.clientY - rect.top;
+  const idx = findDropAt(x, y);
+  if (idx >= 0) {
+    if (splitDrop(idx)) log('✂ Tropfen geteilt', 'flow');
+    else log('… Tropfen zu klein zum Teilen', 'flow');
+  } else {
+    spawnDrop(x, y, 10 + Math.random() * 10);
+    log('💧 neuer Tropfen', 'flow');
+  }
+});
+
+// ─── BUTTONS ────────────────────────────────────────────────────
+document.getElementById('btnMagnet').addEventListener('click', () => {
+  magnetOn = !magnetOn;
+  document.getElementById('btnMagnet').classList.toggle('active', magnetOn);
+  document.getElementById('dotMagnet').className = 'dot' + (magnetOn ? ' on' : '');
+  log(magnetOn ? '🧲 MAGNET aktiv · Tropfen folgen dem Cursor' : '🧲 MAGNET aus · Schwerkraft übernimmt', 'magnet');
+});
+
+document.getElementById('btnAdd').addEventListener('click', () => {
+  spawnDrop(W / 2 + (Math.random() - 0.5) * 60, 20, 12 + Math.random() * 16);
+  log('💧 Tropfen hinzugefügt', 'flow');
+});
+
+document.getElementById('btnSplit').addEventListener('click', () => {
+  if (!drops.length) return;
+  let maxIdx = 0;
+  for (let i = 1; i < drops.length; i++) if (drops[i].r > drops[maxIdx].r) maxIdx = i;
+  if (splitDrop(maxIdx)) log('✂ größter Tropfen geteilt', 'flow');
+  else log('… kein Tropfen groß genug', 'flow');
+});
+
+document.getElementById('btnQuake').addEventListener('click', () => {
+  drops.forEach(d => {
+    d.vx += (Math.random() - 0.5) * 8;
+    d.vy += (Math.random() - 0.5) * 8 - 2;
+  });
+  log('⚡ QUAKE · alle Tropfen erschüttert', 'whirl');
+});
+
+document.getElementById('btnDs9').addEventListener('click', () => {
+  ds9On = !ds9On;
+  document.getElementById('btnDs9').classList.toggle('active', ds9On);
+  document.getElementById('dotDs9').className = 'dot' + (ds9On ? ' gold' : '');
+  log(ds9On ? '★ DS9 · goldener Schimmer aktiv' : '★ DS9 · inaktiv', 'ds9');
+});
+
+document.getElementById('btnReset').addEventListener('click', () => {
+  initDrops();
+  log('⟲ RESET · Quecksilber neu formatiert', 'flow');
+});
+
+// ─── TASTATUR ───────────────────────────────────────────────────
+document.addEventListener('keydown', (e) => {
+  if (e.key === ' ') { e.preventDefault(); document.getElementById('btnAdd').click(); }
+  if (e.key === 'm' || e.key === 'M') document.getElementById('btnMagnet').click();
+  if (e.key === 's' || e.key === 'S') document.getElementById('btnSplit').click();
+  if (e.key === 'q' || e.key === 'Q') document.getElementById('btnQuake').click();
+  if (e.key === 'd' || e.key === 'D') document.getElementById('btnDs9').click();
+  if (e.key === 'x' || e.key === 'X') document.getElementById('btnReset').click();
+});
+
+// ─── LOG ────────────────────────────────────────────────────────
+function log(msg, type = 'ok') {
+  const el = document.getElementById('log');
+  const time = new Date().toLocaleTimeString();
+  const cls = ['ok', 'flow', 'whirl', 'ds9', 'magnet'].includes(type) ? type : 'ok';
+  el.innerHTML += `<div>[${time}] <span class="${cls}">${msg}</span></div>`;
+  el.scrollTop = el.scrollHeight;
+  while (el.children.length > 20) el.removeChild(el.firstChild);
+}
+
+// ─── INIT ───────────────────────────────────────────────────────
+resize();
+initDrops();
+log('🧿 Metaball-Engine gestartet · 10 Tropfen fallen', 'ds9');
+log('⌨️  space=Tropfen  m=Magnet  s=Split  q=Quake  d=DS9  x=Reset', 'flow');
+loop();
+</script>
+</body>
+</html>
